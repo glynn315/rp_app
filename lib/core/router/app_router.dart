@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/register_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/tasks/screens/tasks_screen.dart';
@@ -28,8 +29,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.isAuthenticated;
 
       if (loc == '/splash') return null;
-      if (!isAuthenticated && loc != '/login') return '/login';
-      if (isAuthenticated && loc == '/login') return '/home';
+      const publicRoutes = ['/login', '/register'];
+      if (!isAuthenticated && !publicRoutes.contains(loc)) return '/login';
+      if (isAuthenticated && publicRoutes.contains(loc)) return '/home';
       return null;
     },
     routes: [
@@ -40,6 +42,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

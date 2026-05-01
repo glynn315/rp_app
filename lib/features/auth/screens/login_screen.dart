@@ -16,13 +16,13 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _idController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _idController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -30,12 +30,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     await ref.read(authProvider.notifier).login(
-          _idController.text,
+          _usernameController.text,
           _passwordController.text,
         );
     if (!mounted) return;
-    final error = ref.read(authProvider).error;
-    if (error == null) {
+    final auth = ref.read(authProvider);
+    if (auth.isAuthenticated) {
       context.go('/home');
     }
   }
@@ -120,13 +120,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: AppDimensions.md),
                       AppTextField(
-                        label: 'Employee ID',
-                        hint: 'e.g. EMP001',
-                        controller: _idController,
-                        prefixIcon: Icons.badge_outlined,
+                        label: 'Username',
+                        hint: 'e.g. jdelacruz',
+                        controller: _usernameController,
+                        prefixIcon: Icons.person_outline,
                         textInputAction: TextInputAction.next,
                         validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Employee ID is required' : null,
+                            (v == null || v.trim().isEmpty) ? 'Username is required' : null,
                       ),
                       const SizedBox(height: AppDimensions.md),
                       AppTextField(
@@ -194,6 +194,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppDimensions.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don't have an account? ",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => context.go('/register'),
+                    child: const Text(
+                      'Create Account',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDimensions.md),
               Text(
                 'Contact IT Support for account issues',
                 style: TextStyle(
