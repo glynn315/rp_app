@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/app_logo.dart';
 import '../auth/providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -80,29 +81,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               ),
               child: Column(
                 children: [
-                  Container(
-                    width: 110,
+                  const SizedBox(
+                    width: 220,
                     height: 110,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryDark,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Image.asset(
-                      'assets/icon.png',
-                      fit: BoxFit.contain,
+                    child: Center(
+                      child: AppLogo(size: 78, gap: 12),
                     ),
                   ),
                   const SizedBox(height: 28),
                   const Text(
-                    'RP Workforce',
+                    'RPV Workforce',
                     style: TextStyle(
                       color: AppColors.textOnPrimary,
                       fontSize: 26,

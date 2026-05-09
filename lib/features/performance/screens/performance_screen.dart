@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../home/home_screen.dart';
 import '../models/performance_model.dart';
 import '../providers/performance_provider.dart';
 
@@ -67,7 +68,14 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(title: const Text('Performance'));
+    return AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.menu),
+        tooltip: 'Open menu',
+        onPressed: HomeScreen.openDrawer,
+      ),
+      title: const Text('Performance'),
+    );
   }
 
   @override

@@ -41,6 +41,57 @@ class ApiClient {
     return _send(() => _client.get(_u(path), headers: _headers(token: token)));
   }
 
+  Future<Map<String, dynamic>> put(
+    String path,
+    Map<String, dynamic> body, {
+    String? token,
+  }) async {
+    return _send(() => _client.put(
+          _u(path),
+          headers: _headers(token: token),
+          body: jsonEncode(body),
+        ));
+  }
+
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) async {
+    return _send(() => _client.delete(
+          _u(path),
+          headers: _headers(token: token),
+          body: body == null ? null : jsonEncode(body),
+        ));
+  }
+
+  /// Multipart POST. Sends [fields] alongside one file (passed as [fileBytes]
+  /// + [filename]) at [fileField]. Bytes-based so the same code path works on
+  /// mobile, desktop, and web — `MultipartFile.fromPath` is `dart:io`-only
+  /// and throws "Unsupported operation" on Flutter web.
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required String fileField,
+    required List<int> fileBytes,
+    required String filename,
+    String? token,
+  }) async {
+    return _send(() async {
+      final req = http.MultipartRequest('POST', _u(path));
+      req.headers['Accept'] = 'application/json';
+      if (token != null) req.headers['Authorization'] = 'Bearer $token';
+      req.fields.addAll(fields);
+      req.files.add(http.MultipartFile.fromBytes(
+        fileField,
+        fileBytes,
+        filename: filename,
+      ));
+      final streamed = await req.send();
+      return http.Response.fromStream(streamed);
+    });
+  }
+
   Future<Map<String, dynamic>> _send(
     Future<http.Response> Function() send,
   ) async {

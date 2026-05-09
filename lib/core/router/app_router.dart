@@ -15,6 +15,19 @@ import '../../features/requests/screens/ot_request_screen.dart';
 import '../../features/requests/screens/time_log_screen.dart';
 import '../../features/performance/screens/performance_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/daily_work_report/screens/detect_screen.dart';
+import '../../features/daily_work_report/screens/daily_work_report_screen.dart';
+import '../../features/daily_work_report/screens/log_progress_wizard_screen.dart';
+import '../../features/daily_work_report/screens/lookups_admin_screen.dart';
+import '../../features/project_management/models/project_management_models.dart';
+import '../../features/project_management/screens/bill_of_quantities_screen.dart';
+import '../../features/project_management/screens/boq_entries_screen.dart';
+import '../../features/project_management/screens/boq_log_time_screen.dart';
+import '../../features/project_management/screens/boq_photos_screen.dart';
+import '../../features/project_management/screens/boq_tasks_screen.dart';
+import '../../features/project_management/screens/lmc_payout_screen.dart';
+import '../../features/project_management/screens/mandays_matching_screen.dart';
+import '../../features/project_management/screens/work_in_progress_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -106,6 +119,89 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/requests/timelog',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const TimeLogScreen(),
+      ),
+      GoRoute(
+        path: '/projects/boq',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BillOfQuantitiesScreen(),
+      ),
+      GoRoute(
+        path: '/projects/boq/tasks',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final item = state.extra is BoqItem ? state.extra as BoqItem : null;
+          return BoqTasksScreen(item: item);
+        },
+      ),
+      GoRoute(
+        path: '/projects/boq/log-time',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final item = state.extra is BoqItem ? state.extra as BoqItem : null;
+          return BoqLogTimeScreen(item: item);
+        },
+      ),
+      GoRoute(
+        path: '/projects/boq/photos',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final item = state.extra is BoqItem ? state.extra as BoqItem : null;
+          return BoqPhotosScreen(item: item);
+        },
+      ),
+      GoRoute(
+        path: '/projects/boq/entries',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final item = state.extra is BoqItem ? state.extra as BoqItem : null;
+          return BoqEntriesScreen(item: item);
+        },
+      ),
+      GoRoute(
+        path: '/projects/wip',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WorkInProgressScreen(),
+      ),
+      GoRoute(
+        path: '/projects/lmc-payout',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LmcPayoutScreen(),
+      ),
+      GoRoute(
+        path: '/projects/mandays-matching',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MandaysMatchingScreen(),
+      ),
+      GoRoute(
+        path: '/log-progress',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LogProgressWizardScreen(),
+      ),
+      GoRoute(
+        path: '/work-report',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DetectScreen(),
+        routes: [
+          GoRoute(
+            path: 'today',
+            builder: (context, state) =>
+                const DailyWorkReportScreen(initialTab: 'today'),
+          ),
+          GoRoute(
+            path: 'calendar',
+            builder: (context, state) =>
+                const DailyWorkReportScreen(initialTab: 'calendar'),
+          ),
+          GoRoute(
+            path: 'unmatched',
+            builder: (context, state) =>
+                const DailyWorkReportScreen(initialTab: 'unmatched'),
+          ),
+          GoRoute(
+            path: 'admin/lookups',
+            builder: (context, state) => const LookupsAdminScreen(),
+          ),
+        ],
       ),
     ],
   );

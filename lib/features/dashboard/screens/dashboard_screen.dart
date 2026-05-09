@@ -6,10 +6,12 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../home/home_screen.dart';
 import '../../tasks/models/task_model.dart';
 import '../../tasks/providers/task_provider.dart';
 import '../../requests/models/request_model.dart';
 import '../../requests/providers/requests_provider.dart';
+import '../../daily_work_report/providers/work_report_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -38,6 +40,12 @@ class DashboardScreen extends ConsumerWidget {
             expandedHeight: 130,
             pinned: true,
             backgroundColor: AppColors.primary,
+            iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+            leading: IconButton(
+              icon: const Icon(Icons.menu),
+              tooltip: 'Open menu',
+              onPressed: HomeScreen.openDrawer,
+            ),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 color: AppColors.primary,
@@ -108,6 +116,14 @@ class DashboardScreen extends ConsumerWidget {
                     leaveBalance: user?.leaveBalance ?? 0,
                     pendingRequests: pendingRequests,
                   ),
+                  const SizedBox(height: AppDimensions.lg),
+
+                  // Daily Work Report entry
+                  _DailyWorkReportCta(),
+                  const SizedBox(height: AppDimensions.sm),
+
+                  // Log-Progress wizard entry — Attendance → BoQ → Photo → AI
+                  const _LogProgressCta(),
                   const SizedBox(height: AppDimensions.lg),
 
                   // Quick actions
@@ -570,6 +586,260 @@ class _RequestTile extends StatelessWidget {
           ),
           StatusBadge(type: badgeType),
         ],
+      ),
+    );
+  }
+}
+
+/// Entry point for the guided 4-step Log-Progress wizard
+/// (Attendance → BoQ → Photo → AI evaluation). Renders as a secondary CTA
+/// directly under the day's report card so it's always one tap away.
+class _LogProgressCta extends StatelessWidget {
+  const _LogProgressCta();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push('/log-progress'),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        child: Container(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.add_a_photo_outlined,
+                    color: AppColors.secondary, size: 22),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Log progress with photo',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Attendance → BoQ → Photo → AI evaluation',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward,
+                  color: AppColors.secondary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Daily Work Report status card.
+///
+/// Auto-detects the worker's contract + today's report state on mount, then
+/// shows one of: loading, no-attendance, ready-to-submit, or submitted.
+class _DailyWorkReportCta extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_DailyWorkReportCta> createState() => _DailyWorkReportCtaState();
+}
+
+class _DailyWorkReportCtaState extends ConsumerState<_DailyWorkReportCta> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final empId = ref.read(authProvider).user?.employeeId;
+      if (empId != null && empId.isNotEmpty) {
+        ref.read(workReportProvider.notifier).loadToday(employeeId: empId);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ref.watch(workReportProvider);
+
+    // ─── Loading ────────────────────────────────────────────────────────
+    if (!s.todayLoaded && s.detectStep != DetectStep.failed) {
+      return const _CtaShell(
+        bg: AppColors.primary,
+        leadingIcon: Icons.assignment_outlined,
+        title: "Today's work report",
+        subtitle: 'Checking your contract and attendance…',
+        trailing: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation(Colors.white),
+          ),
+        ),
+      );
+    }
+
+    // ─── Failed to detect ───────────────────────────────────────────────
+    if (s.detectStep == DetectStep.failed) {
+      return _CtaShell(
+        bg: AppColors.error,
+        leadingIcon: Icons.error_outline,
+        title: 'Could not load work report',
+        subtitle: s.error ?? 'Tap to retry.',
+        trailing: const Icon(Icons.refresh, color: Colors.white, size: 20),
+        onTap: () {
+          final empId = ref.read(authProvider).user?.employeeId;
+          if (empId != null && empId.isNotEmpty) {
+            ref.read(workReportProvider.notifier).loadToday(employeeId: empId, force: true);
+          }
+        },
+      );
+    }
+
+    // ─── No biometric attendance for today ──────────────────────────────
+    final hasShift = s.profile?.shift != null && s.profile!.hasAttendanceToday;
+    if (!hasShift) {
+      return const _CtaShell(
+        bg: AppColors.warning,
+        leadingIcon: Icons.warning_amber_rounded,
+        title: 'No attendance recorded today',
+        subtitle: 'Daily report is unavailable until biometric time-in is logged.',
+        trailing: Icon(Icons.info_outline, color: Colors.white, size: 20),
+      );
+    }
+
+    // ─── Already submitted ──────────────────────────────────────────────
+    if (s.submitted) {
+      final shift = s.profile!.shift!;
+      return _CtaShell(
+        bg: AppColors.success,
+        leadingIcon: Icons.check_circle,
+        title: "Today's report submitted",
+        subtitle: 'Shift ${shift.timeIn} – ${shift.timeOut} · supervisor notified.',
+        trailing: const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+        onTap: () => context.go('/work-report/today'),
+      );
+    }
+
+    // ─── Needs report ───────────────────────────────────────────────────
+    final shift = s.profile!.shift!;
+    final isField = s.profile!.contractType == 'field';
+    return _CtaShell(
+      bg: AppColors.primary,
+      accentBg: AppColors.secondary,
+      leadingIcon: Icons.assignment_outlined,
+      title: 'Submit your daily report',
+      subtitle: '${isField ? "Field" : "Admin"} contract · shift ${shift.timeIn}–${shift.timeOut}',
+      trailing: const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+      onTap: () => context.go('/work-report/today'),
+    );
+  }
+}
+
+/// Shared shell for the various dashboard CTA states. Keeps padding,
+/// shadow, leading-icon, and tap-feedback consistent.
+class _CtaShell extends StatelessWidget {
+  final Color bg;
+  final Color? accentBg;
+  final IconData leadingIcon;
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _CtaShell({
+    required this.bg,
+    required this.leadingIcon,
+    required this.title,
+    required this.subtitle,
+    this.accentBg,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        child: Container(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            boxShadow: [
+              BoxShadow(
+                color: bg.withValues(alpha: 0.18),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: accentBg ?? Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(leadingIcon, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing!,
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

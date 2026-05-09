@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../home/home_screen.dart';
 import '../models/task_model.dart';
 import '../providers/task_provider.dart';
 import '../widgets/task_card.dart';
@@ -40,6 +41,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Open menu',
+          onPressed: HomeScreen.openDrawer,
+        ),
         title: const Text('Tasks'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(44),
