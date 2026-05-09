@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/app_drawer.dart';
 
 class HomeScreen extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   const HomeScreen({super.key, required this.navigationShell});
+
+  /// Shared scaffold key so child screens (which build their own inner
+  /// Scaffolds) can open the app-wide drawer hosted here.
+  static final GlobalKey<ScaffoldState> scaffoldKey =
+      GlobalKey<ScaffoldState>();
+
+  static void openDrawer() => scaffoldKey.currentState?.openDrawer();
 
   static const _destinations = [
     NavigationDestination(
@@ -38,6 +46,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
+      drawer: const AppDrawer(),
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

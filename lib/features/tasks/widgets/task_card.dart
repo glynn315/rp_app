@@ -32,22 +32,23 @@ class TaskCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Priority indicator
-          Container(
-            width: 4,
-            height: double.infinity,
-            constraints: const BoxConstraints(minHeight: 72),
-            decoration: BoxDecoration(
-              color: _priorityColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppDimensions.radiusMd),
-                bottomLeft: Radius.circular(AppDimensions.radiusMd),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Priority indicator — stretches to the card's intrinsic height
+            // (driven by the text/chip column on the right).
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: _priorityColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(AppDimensions.radiusMd),
+                  bottomLeft: Radius.circular(AppDimensions.radiusMd),
+                ),
               ),
             ),
-          ),
-          Expanded(
+            Expanded(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
               child: Column(
@@ -168,6 +169,7 @@ class TaskCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

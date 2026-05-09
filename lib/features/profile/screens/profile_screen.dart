@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../home/home_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -14,7 +15,14 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Open menu',
+          onPressed: HomeScreen.openDrawer,
+        ),
+        title: const Text('Profile'),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -156,7 +164,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppDimensions.lg),
                   Text(
-                    'RP Workforce v1.0.0',
+                    'RPV Workforce v1.0.0',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.textMuted.withValues(alpha: 0.7),
@@ -215,7 +223,7 @@ class ProfileScreen extends ConsumerWidget {
   void _showAbout(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'RP Workforce',
+      applicationName: 'RPV Workforce',
       applicationVersion: '1.0.0',
       applicationLegalese: '© 2026 chiukim.com',
     );

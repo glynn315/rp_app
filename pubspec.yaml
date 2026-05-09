@@ -1,5 +1,5 @@
 name: rp_app
-description: "RP Workforce - Employee Management Application"
+description: "RPV Workforce - Employee Management Application"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -26,3 +26,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon.png
+    - assets/vespera-logo.png

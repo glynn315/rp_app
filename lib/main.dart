@@ -16,7 +16,7 @@ class RpApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'RP Workforce',
+      title: 'RPV Workforce',
       theme: AppTheme.light,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

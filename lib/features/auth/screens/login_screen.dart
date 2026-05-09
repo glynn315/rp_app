@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../providers/auth_provider.dart';
 
@@ -53,26 +54,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               const SizedBox(height: AppDimensions.xxl),
               // Logo
-              Container(
-                width: 88,
+              const SizedBox(
+                width: 180,
                 height: 88,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.25),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                child: Center(
+                  child: AppLogo(size: 60, gap: 10),
                 ),
-                padding: const EdgeInsets.all(14),
-                child: Image.asset('assets/icon.png', fit: BoxFit.contain),
               ),
               const SizedBox(height: AppDimensions.lg),
               const Text(
-                'RP Workforce',
+                'RPV Workforce',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,

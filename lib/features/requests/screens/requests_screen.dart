@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/widgets/status_badge.dart';
+import '../../home/home_screen.dart';
 import '../models/request_model.dart';
 import '../providers/requests_provider.dart';
 
@@ -70,6 +71,11 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Open menu',
+          onPressed: HomeScreen.openDrawer,
+        ),
         title: const Text('My Requests'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(44),
