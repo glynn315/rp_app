@@ -116,7 +116,7 @@ class _TimeLogScreenState extends ConsumerState<TimeLogScreen> {
               'Upload CCTV Copy',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
             ),
@@ -206,7 +206,7 @@ class _TimeLogScreenState extends ConsumerState<TimeLogScreen> {
             const SizedBox(height: 16),
             const Text(
               'Time Log Submitted',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -512,7 +512,7 @@ class _Card extends StatelessWidget {
             title,
             style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.textMuted,
               letterSpacing: 1.0,
             ),

@@ -95,7 +95,7 @@ class _DetectScreenState extends ConsumerState<DetectScreen> {
                     'RPV WORKFORCE',
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: 1.4,
                       color: WorkReportColors.charcoal,
                     ),
@@ -107,7 +107,7 @@ class _DetectScreenState extends ConsumerState<DetectScreen> {
                 'Setting up your day',
                 style: TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                   color: WorkReportColors.midnight,
                 ),
               ),
@@ -234,7 +234,7 @@ class _StepRow extends StatelessWidget {
             duration: const Duration(milliseconds: 180),
             style: TextStyle(
               fontSize: 14,
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
               color: isDone || isActive
                   ? WorkReportColors.charcoal
                   : WorkReportColors.stone,

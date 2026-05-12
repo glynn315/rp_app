@@ -76,7 +76,7 @@ class _BoqItemCard extends StatelessWidget {
                   item.itemLabel.isEmpty ? '—' : item.itemLabel,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                 ),
@@ -134,7 +134,7 @@ class _BoqItemCard extends StatelessWidget {
                 label: const Text('Tasks'),
                 style: TextButton.styleFrom(
                   foregroundColor: WorkReportColors.midnight,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 ),
               ),
@@ -146,7 +146,7 @@ class _BoqItemCard extends StatelessWidget {
                 label: const Text('Photos'),
                 style: TextButton.styleFrom(
                   foregroundColor: WorkReportColors.midnight,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 ),
               ),
@@ -158,7 +158,7 @@ class _BoqItemCard extends StatelessWidget {
                 label: const Text('Entries'),
                 style: TextButton.styleFrom(
                   foregroundColor: WorkReportColors.midnight,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 ),
               ),
@@ -170,7 +170,7 @@ class _BoqItemCard extends StatelessWidget {
                 label: const Text('Log time'),
                 style: TextButton.styleFrom(
                   foregroundColor: WorkReportColors.terracotta,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 ),
               ),
@@ -212,7 +212,7 @@ class _MetricCol extends StatelessWidget {
           value,
           style: TextStyle(
             fontSize: emphasise ? 14 : 13,
-            fontWeight: emphasise ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: emphasise ? FontWeight.w600 : FontWeight.w500,
             color: emphasise ? AppColors.primary : AppColors.textPrimary,
           ),
         ),

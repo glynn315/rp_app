@@ -353,7 +353,7 @@ class _Section extends StatelessWidget {
             title,
             style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.textMuted,
               letterSpacing: 1.0,
             ),

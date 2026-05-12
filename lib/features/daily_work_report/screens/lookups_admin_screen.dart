@@ -55,7 +55,7 @@ class _LookupsAdminScreenState extends ConsumerState<LookupsAdminScreen>
         foregroundColor: Colors.white,
         title: const Text(
           'Manage Projects & Tasks',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -67,7 +67,7 @@ class _LookupsAdminScreenState extends ConsumerState<LookupsAdminScreen>
           labelColor: Colors.white,
           unselectedLabelColor: WorkReportColors.stone,
           indicatorColor: WorkReportColors.terracotta,
-          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           tabs: _tabs.map((t) => Tab(text: TagType.labelFor(t))).toList(),
         ),
       ),
@@ -281,7 +281,7 @@ class _LookupCardState extends ConsumerState<_LookupCard> {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -298,7 +298,7 @@ class _LookupCardState extends ConsumerState<_LookupCard> {
                                   'INACTIVE',
                                   style: TextStyle(
                                     fontSize: 9,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     color: WorkReportColors.danger,
                                     letterSpacing: 0.5,
                                   ),
@@ -311,7 +311,7 @@ class _LookupCardState extends ConsumerState<_LookupCard> {
                           item.name,
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: item.isActive
                                 ? WorkReportColors.charcoal
                                 : WorkReportColors.stone,
@@ -361,7 +361,7 @@ class _LookupCardState extends ConsumerState<_LookupCard> {
                     'TASKS',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       color: WorkReportColors.stone,
                       letterSpacing: 0.8,
                     ),
@@ -586,7 +586,7 @@ class _AddTaskAdminChip extends StatelessWidget {
               'New task',
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: WorkReportColors.midnight,
               ),
             ),

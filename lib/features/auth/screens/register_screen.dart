@@ -174,7 +174,7 @@ class _SearchEmployeeStepState extends ConsumerState<_SearchEmployeeStep> {
               'Find your record',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
             ),
@@ -227,7 +227,7 @@ class _SearchEmployeeStepState extends ConsumerState<_SearchEmployeeStep> {
                 'MATCHING RECORD',
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textMuted,
                   letterSpacing: 1.5,
                 ),
@@ -301,7 +301,7 @@ class _EmployeeCard extends StatelessWidget {
                     : '?',
                 style: const TextStyle(
                   color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -370,7 +370,7 @@ class _VerifyInfoStepState extends ConsumerState<_VerifyInfoStep> {
           'Confirm your details',
           style: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
@@ -496,7 +496,7 @@ class _SecuredBadge extends StatelessWidget {
             'Hashed',
             style: TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.success,
             ),
           ),
@@ -620,7 +620,7 @@ class _OtpStepState extends ConsumerState<_OtpStep> {
             'Verify your identity',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
@@ -656,7 +656,7 @@ class _OtpStepState extends ConsumerState<_OtpStep> {
                         style: TextStyle(
                           fontSize: 10,
                           letterSpacing: 1.2,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.info,
                         ),
                       ),
@@ -665,7 +665,7 @@ class _OtpStepState extends ConsumerState<_OtpStep> {
                         username,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
                       ),
@@ -749,7 +749,7 @@ class _OtpStepState extends ConsumerState<_OtpStep> {
                           style: TextStyle(
                             fontSize: 13,
                             color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       )
@@ -864,7 +864,7 @@ class _PasswordStepState extends ConsumerState<_PasswordStep> {
               'Create your password',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
             ),
@@ -949,7 +949,7 @@ class _DoneStep extends StatelessWidget {
             'Account Created',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),

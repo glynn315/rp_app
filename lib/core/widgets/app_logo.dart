@@ -1,44 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../constants/app_colors.dart';
 
-/// Single source of truth for the brand logos across the app.
+/// RPV brand symbol — text wordmark `RPV·` per brand spec.
+/// Inter 600, tight tracking, with an Ember-colored interpunct.
 ///
-/// Renders the RP icon and Vespera logo side-by-side. [size] is the height
-/// (and width) of *each* logo — the widget's total width is
-/// `size * 2 + gap` plus any [padding].
+/// [color] sets the wordmark color (defaults to Midnight for light surfaces).
+/// On dark surfaces, pass [AppColors.pureWhite] or use [AppLogo.onDark].
 class AppLogo extends StatelessWidget {
   final double size;
+  final Color? color;
   final EdgeInsetsGeometry? padding;
-  final BoxFit fit;
-  final double gap;
 
   const AppLogo({
     super.key,
-    this.size = 48,
+    this.size = 28,
+    this.color,
     this.padding,
-    this.fit = BoxFit.contain,
-    this.gap = 8,
   });
+
+  /// Convenience constructor for use on dark surfaces (Midnight nav, splash).
+  const AppLogo.onDark({super.key, this.size = 28, this.padding})
+      : color = AppColors.pureWhite;
 
   @override
   Widget build(BuildContext context) {
+    final wordmarkColor = color ?? AppColors.midnight;
+    final baseStyle = GoogleFonts.inter(
+      fontSize: size,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -size * 0.012,
+      height: 1.0,
+    );
+
     return Padding(
       padding: padding ?? EdgeInsets.zero,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: Image.asset('assets/icon.png', fit: fit),
-          ),
-          SizedBox(width: gap),
-          SizedBox(
-            width: size,
-            height: size,
-            child: Image.asset('assets/vespera-logo.png', fit: fit),
-          ),
-        ],
+      child: RichText(
+        text: TextSpan(
+          style: baseStyle.copyWith(color: wordmarkColor),
+          children: [
+            const TextSpan(text: 'RPV'),
+            TextSpan(
+              text: '·',
+              style: baseStyle.copyWith(color: AppColors.ember),
+            ),
+          ],
+        ),
       ),
     );
   }

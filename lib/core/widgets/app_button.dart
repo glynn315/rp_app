@@ -24,13 +24,16 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spinnerColor =
+        isOutlined ? AppColors.slate : AppColors.pureWhite;
+
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(AppColors.textOnPrimary),
+              valueColor: AlwaysStoppedAnimation(spinnerColor),
             ),
           )
         : Row(
@@ -87,13 +90,13 @@ class AppSmallButton extends StatelessWidget {
     return FilledButton(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: backgroundColor ?? AppColors.primary,
-        foregroundColor: foregroundColor ?? AppColors.textOnPrimary,
+        backgroundColor: backgroundColor ?? AppColors.terracotta,
+        foregroundColor: foregroundColor ?? AppColors.pureWhite,
         minimumSize: const Size(80, AppDimensions.buttonHeightSm),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+          borderRadius: BorderRadius.circular(AppDimensions.buttonRadius),
         ),
       ),
       child: Text(label),

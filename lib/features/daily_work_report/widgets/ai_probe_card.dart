@@ -72,7 +72,7 @@ class _AiProbeCardState extends ConsumerState<AiProbeCard> {
                   style: const TextStyle(
                     fontSize: 9,
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                     letterSpacing: 0.7,
                   ),
                 ),

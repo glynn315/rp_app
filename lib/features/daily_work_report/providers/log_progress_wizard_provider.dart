@@ -24,19 +24,23 @@ class LogProgressWizardState {
   // Step 2 — BoQ selection
   final BoqItem? selectedBoq;
 
-  // Step 3 — uploaded progress photo
-  final String? photoPath;
-  final String? photoUrl;
-  /// Picked file kept in memory so step 4 can re-feed the same image to the
-  /// AI evaluator without round-tripping through the server URL. [XFile] is
-  /// cross-platform (mobile + web), unlike `dart:io.File`.
-  final XFile? photoFile;
+  // Step 3 — uploaded progress photos. Parallel lists, aligned by index:
+  // photoPaths[i] is the server-side relative path returned by the upload
+  // endpoint, photoUrls[i] is the absolute URL for display, photoFiles[i] is
+  // the locally-picked file kept in memory so step 4 can feed it to the AI
+  // evaluator without round-tripping through the URL. [XFile] is
+  // cross-platform (mobile + web), unlike `dart:io.File`.
+  final List<String> photoPaths;
+  final List<String> photoUrls;
+  final List<XFile> photoFiles;
 
-  // Step 4 — AI evaluation
+  // Step 4 — AI evaluation (runs against the most recently uploaded photo).
   final ProgressPhotoEvaluation? evaluation;
 
   final bool busy;
   final String? error;
+
+  static const int maxPhotos = 5;
 
   const LogProgressWizardState({
     this.step = WizardStep.attendance,
@@ -47,9 +51,9 @@ class LogProgressWizardState {
     this.timeOut = '',
     this.tasks = '',
     this.selectedBoq,
-    this.photoPath,
-    this.photoUrl,
-    this.photoFile,
+    this.photoPaths = const [],
+    this.photoUrls = const [],
+    this.photoFiles = const [],
     this.evaluation,
     this.busy = false,
     this.error,
@@ -64,15 +68,15 @@ class LogProgressWizardState {
     String? timeOut,
     String? tasks,
     BoqItem? selectedBoq,
-    String? photoPath,
-    String? photoUrl,
-    XFile? photoFile,
+    List<String>? photoPaths,
+    List<String>? photoUrls,
+    List<XFile>? photoFiles,
     ProgressPhotoEvaluation? evaluation,
     bool? busy,
     String? error,
     bool clearError = false,
     bool clearEvaluation = false,
-    bool clearPhoto = false,
+    bool clearPhotos = false,
     bool clearBoq = false,
   }) {
     return LogProgressWizardState(
@@ -84,9 +88,9 @@ class LogProgressWizardState {
       timeOut: timeOut ?? this.timeOut,
       tasks: tasks ?? this.tasks,
       selectedBoq: clearBoq ? null : (selectedBoq ?? this.selectedBoq),
-      photoPath: clearPhoto ? null : (photoPath ?? this.photoPath),
-      photoUrl: clearPhoto ? null : (photoUrl ?? this.photoUrl),
-      photoFile: clearPhoto ? null : (photoFile ?? this.photoFile),
+      photoPaths: clearPhotos ? const [] : (photoPaths ?? this.photoPaths),
+      photoUrls: clearPhotos ? const [] : (photoUrls ?? this.photoUrls),
+      photoFiles: clearPhotos ? const [] : (photoFiles ?? this.photoFiles),
       evaluation:
           clearEvaluation ? null : (evaluation ?? this.evaluation),
       busy: busy ?? this.busy,
@@ -102,8 +106,9 @@ class LogProgressWizardState {
       tasks.trim().isNotEmpty;
 
   bool get boqReady => selectedBoq != null;
-  bool get photoReady => photoPath != null && photoUrl != null;
+  bool get photoReady => photoPaths.isNotEmpty;
   bool get evaluationReady => evaluation != null;
+  bool get canAddPhoto => photoPaths.length < maxPhotos;
 }
 
 class LogProgressWizardNotifier
@@ -171,10 +176,19 @@ class LogProgressWizardNotifier
 
   // ─── Step 3 — photo upload ──────────────────────────────────────
 
+  /// Uploads one photo and appends it to the wizard's photo list. Enforces
+  /// the max-photos cap and clears the AI evaluation, since a new photo
+  /// invalidates a verdict that was scored against the previous last image.
   Future<bool> uploadPhoto(XFile file) async {
     final empId = _employeeId;
     if (empId == null) {
       state = state.copyWith(error: 'No active profile.');
+      return false;
+    }
+    if (!state.canAddPhoto) {
+      state = state.copyWith(
+        error: 'Up to ${LogProgressWizardState.maxPhotos} photos per entry.',
+      );
       return false;
     }
     state = state.copyWith(busy: true, clearError: true, clearEvaluation: true);
@@ -187,9 +201,9 @@ class LogProgressWizardNotifier
       );
       state = state.copyWith(
         busy: false,
-        photoPath: res.path,
-        photoUrl: res.url,
-        photoFile: file,
+        photoPaths: [...state.photoPaths, res.path],
+        photoUrls: [...state.photoUrls, res.url],
+        photoFiles: [...state.photoFiles, file],
       );
       return true;
     } catch (e) {
@@ -198,8 +212,23 @@ class LogProgressWizardNotifier
     }
   }
 
-  void clearPhoto() {
-    state = state.copyWith(clearPhoto: true, clearEvaluation: true);
+  /// Removes the photo at [index] from the wizard's list. Also clears any
+  /// existing AI evaluation since it was scored against the prior last photo.
+  void removePhoto(int index) {
+    if (index < 0 || index >= state.photoPaths.length) return;
+    final paths = [...state.photoPaths]..removeAt(index);
+    final urls  = [...state.photoUrls]..removeAt(index);
+    final files = [...state.photoFiles]..removeAt(index);
+    state = state.copyWith(
+      photoPaths: paths,
+      photoUrls: urls,
+      photoFiles: files,
+      clearEvaluation: true,
+    );
+  }
+
+  void clearPhotos() {
+    state = state.copyWith(clearPhotos: true, clearEvaluation: true);
   }
 
   /// Clears just the AI evaluation result so it can be re-run.
@@ -287,7 +316,7 @@ class LogProgressWizardNotifier
         tagType: state.tagType,
         tagId: tagId,
         tagLabel: tagLabel,
-        photoPaths: [state.photoPath!],
+        photoPaths: state.photoPaths,
         boqItemId: boq.lineId?.toString(),
         boqLabel: boq.itemLabel,
         aiEvaluation: state.evaluation?.evaluation,

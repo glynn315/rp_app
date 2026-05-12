@@ -113,7 +113,7 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
@@ -192,7 +192,7 @@ class _ScopeHeader extends StatelessWidget {
                   headline,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                 ),
@@ -276,7 +276,7 @@ class _EntryTileState extends State<_EntryTile> {
                               _fmtDate(reportDate),
                               style: const TextStyle(
                                 fontSize: 13,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary,
                               ),
                             ),
@@ -339,7 +339,7 @@ class _EntryTileState extends State<_EntryTile> {
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textMuted,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -459,7 +459,7 @@ class _StatusChip extends StatelessWidget {
         label,
         style: TextStyle(
           fontSize: 9,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           color: color,
           letterSpacing: 0.6,
         ),
@@ -491,7 +491,7 @@ class _VerdictChip extends StatelessWidget {
         lc.toUpperCase(),
         style: TextStyle(
           fontSize: 9,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           color: color,
           letterSpacing: 0.6,
         ),
@@ -510,7 +510,7 @@ class _MiniLabel extends StatelessWidget {
       label,
       style: const TextStyle(
         fontSize: 10,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
         color: AppColors.textMuted,
         letterSpacing: 0.8,
       ),

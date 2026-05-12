@@ -81,31 +81,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               ),
               child: Column(
                 children: [
-                  const SizedBox(
-                    width: 220,
-                    height: 110,
-                    child: Center(
-                      child: AppLogo(size: 78, gap: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'RPV Workforce',
-                    style: TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
+                  const AppLogo.onDark(size: 88),
+                  const SizedBox(height: 16),
                   Text(
-                    'Employee Management System',
+                    'Forward · Responsible',
                     style: TextStyle(
-                      color: AppColors.textOnPrimary.withValues(alpha: 0.6),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 1.0,
+                      color: AppColors.ember,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 1.2,
                     ),
                   ),
                 ],

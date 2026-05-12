@@ -462,7 +462,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                     'Filter',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -584,7 +584,7 @@ class _SectionLabel extends StatelessWidget {
         text,
         style: const TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: AppColors.textSecondary,
           letterSpacing: 0.4,
         ),
@@ -831,7 +831,7 @@ class _ProjectPickerSheetState extends ConsumerState<_ProjectPickerSheet> {
                 'Pick a project',
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
               ),

@@ -117,7 +117,7 @@ class _LeaveRequestScreenState extends ConsumerState<LeaveRequestScreen> {
             const SizedBox(height: 16),
             const Text(
               'Leave Request Submitted',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -335,7 +335,7 @@ class _Card extends StatelessWidget {
             title,
             style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.textMuted,
               letterSpacing: 1.0,
             ),

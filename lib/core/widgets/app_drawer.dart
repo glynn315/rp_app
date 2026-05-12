@@ -15,7 +15,7 @@ class AppDrawer extends ConsumerWidget {
     final currentLocation = GoRouterState.of(context).matchedLocation;
 
     return Drawer(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.pureWhite,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -102,7 +102,7 @@ class AppDrawer extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const Divider(height: AppDimensions.lg, color: AppColors.neutral100),
+                  const Divider(height: AppDimensions.lg, color: AppColors.border),
                   _DrawerTile(
                     icon: Icons.person_outline,
                     selectedIcon: Icons.person,
@@ -116,12 +116,12 @@ class AppDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            const Divider(height: 1, color: AppColors.neutral100),
+            const Divider(height: 1, color: AppColors.border),
             ListTile(
               leading: const Icon(Icons.logout, color: AppColors.error),
               title: const Text(
                 'Sign out',
-                style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+                style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w500),
               ),
               onTap: () async {
                 Navigator.of(context).pop();
@@ -150,38 +150,22 @@ class _DrawerHeader extends StatelessWidget {
         AppDimensions.md,
         AppDimensions.lg,
       ),
-      decoration: const BoxDecoration(color: AppColors.primary),
+      decoration: const BoxDecoration(color: AppColors.midnight),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const SizedBox(
-                height: 48,
-                child: Center(child: AppLogo(size: 32, gap: 6)),
-              ),
-              const SizedBox(width: AppDimensions.sm),
-              const Expanded(
-                child: Text(
-                  'RPV Workforce',
-                  style: TextStyle(
-                    color: AppColors.textOnPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+              AppLogo.onDark(size: 24),
             ],
           ),
           const SizedBox(height: AppDimensions.md),
           Text(
             name ?? 'Employee',
             style: const TextStyle(
-              color: AppColors.textOnPrimary,
+              color: AppColors.pureWhite,
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
           if (role != null && role!.isNotEmpty) ...[
@@ -189,7 +173,7 @@ class _DrawerHeader extends StatelessWidget {
             Text(
               role!,
               style: TextStyle(
-                color: AppColors.textOnPrimary.withValues(alpha: 0.75),
+                color: AppColors.pureWhite.withValues(alpha: 0.72),
                 fontSize: 12,
               ),
             ),
@@ -230,22 +214,22 @@ class _DrawerAccordion extends StatelessWidget {
         leading: Icon(
           initiallyExpanded ? selectedIcon : icon,
           color: initiallyExpanded
-              ? AppColors.primary
-              : AppColors.textSecondary,
+              ? AppColors.terracotta
+              : AppColors.stone,
         ),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 14,
             fontWeight:
-                initiallyExpanded ? FontWeight.w700 : FontWeight.w600,
+                initiallyExpanded ? FontWeight.w600 : FontWeight.w500,
             color: initiallyExpanded
-                ? AppColors.primary
-                : AppColors.textPrimary,
+                ? AppColors.terracotta
+                : AppColors.charcoalText,
           ),
         ),
-        iconColor: AppColors.primary,
-        collapsedIconColor: AppColors.textSecondary,
+        iconColor: AppColors.terracotta,
+        collapsedIconColor: AppColors.stone,
         children: children,
       ),
     );
@@ -274,19 +258,19 @@ class _DrawerTile extends StatelessWidget {
     return ListTile(
       leading: Icon(
         selected ? selectedIcon : icon,
-        color: selected ? AppColors.primary : AppColors.textSecondary,
+        color: selected ? AppColors.terracotta : AppColors.stone,
         size: nested ? 20 : 24,
       ),
       title: Text(
         label,
         style: TextStyle(
           fontSize: nested ? 13 : 14,
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          color: selected ? AppColors.primary : AppColors.textPrimary,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          color: selected ? AppColors.terracotta : AppColors.charcoalText,
         ),
       ),
       selected: selected,
-      selectedTileColor: AppColors.surfaceVariant.withValues(alpha: 0.4),
+      selectedTileColor: AppColors.terracotta.withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),

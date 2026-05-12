@@ -242,7 +242,7 @@ class _BoqLogTimeScreenState extends ConsumerState<BoqLogTimeScreen> {
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -285,7 +285,7 @@ class _BoqLogTimeScreenState extends ConsumerState<BoqLogTimeScreen> {
                               : 'Untitled BOQ line'),
                       style: const TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                       maxLines: 2,
@@ -318,7 +318,7 @@ class _BoqLogTimeScreenState extends ConsumerState<BoqLogTimeScreen> {
                 money.format(item.amount),
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.primary,
                 ),
               ),
@@ -358,7 +358,7 @@ class _BoqLogTimeScreenState extends ConsumerState<BoqLogTimeScreen> {
                 : 'COMMON TASKS — TAP TO ADD',
             style: const TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: WorkReportColors.stone,
               letterSpacing: 0.8,
             ),
@@ -431,7 +431,7 @@ class _BoqLogTimeScreenState extends ConsumerState<BoqLogTimeScreen> {
                 onPressed: _trySubmit,
                 child: const Text(
                   'Add block',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -549,7 +549,7 @@ class _AddTaskChip extends StatelessWidget {
               'New task',
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: WorkReportColors.midnight,
               ),
             ),
@@ -578,7 +578,7 @@ class _MissingItemMessage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
             ),

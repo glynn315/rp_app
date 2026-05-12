@@ -53,25 +53,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             children: [
               const SizedBox(height: AppDimensions.xxl),
-              // Logo
-              const SizedBox(
-                width: 180,
-                height: 88,
-                child: Center(
-                  child: AppLogo(size: 60, gap: 10),
-                ),
-              ),
-              const SizedBox(height: AppDimensions.lg),
-              const Text(
-                'RPV Workforce',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(height: 6),
+              const AppLogo(size: 64),
+              const SizedBox(height: AppDimensions.md),
               const Text(
                 'Sign in to your account',
                 style: TextStyle(
@@ -104,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         'EMPLOYEE LOGIN',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.textMuted,
                           letterSpacing: 1.5,
                         ),
@@ -202,7 +185,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),

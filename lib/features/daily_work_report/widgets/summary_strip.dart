@@ -72,7 +72,7 @@ class _Stat extends StatelessWidget {
             label.toUpperCase(),
             style: const TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: WorkReportColors.stone,
               letterSpacing: 0.8,
             ),
@@ -82,7 +82,7 @@ class _Stat extends StatelessWidget {
             value,
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: valueColor,
             ),
           ),

@@ -143,7 +143,7 @@ class _BoqTasksScreenState extends ConsumerState<BoqTasksScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
@@ -236,7 +236,7 @@ class _ScopeHeader extends StatelessWidget {
                   headline,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                 ),
@@ -287,7 +287,7 @@ class _AddTaskRow extends StatelessWidget {
             'ADD A TASK',
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: AppColors.textMuted,
               letterSpacing: 1.0,
             ),
@@ -341,7 +341,7 @@ class _SectionLabel extends StatelessWidget {
       label,
       style: const TextStyle(
         fontSize: 11,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
         color: AppColors.textMuted,
         letterSpacing: 1.0,
       ),

@@ -57,7 +57,7 @@ class ProfileScreen extends ConsumerWidget {
                             : 'E',
                         style: const TextStyle(
                           fontSize: 32,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.textOnSecondary,
                         ),
                       ),
@@ -69,7 +69,7 @@ class ProfileScreen extends ConsumerWidget {
                     style: const TextStyle(
                       color: AppColors.textOnPrimary,
                       fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -164,7 +164,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppDimensions.lg),
                   Text(
-                    'RPV Workforce v1.0.0',
+                    'RPV v1.0.0',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.textMuted.withValues(alpha: 0.7),
@@ -223,9 +223,22 @@ class ProfileScreen extends ConsumerWidget {
   void _showAbout(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'RPV Workforce',
+      applicationName: 'RPV',
       applicationVersion: '1.0.0',
       applicationLegalese: '© 2026 chiukim.com',
+      children: const [
+        SizedBox(height: 16),
+        Text(
+          'RPV is the all-in-one HR platform for every employee at '
+          'Renaissance Park & Vespera. Submit your daily work report, '
+          'log progress on projects, file leave and overtime requests, '
+          'and track your performance — all in one place. Built for '
+          'everyone, from frontline crews to leadership, with the '
+          'clarity to act and the accountability to follow through. '
+          'Forward · Responsible.',
+          style: TextStyle(fontSize: 13, height: 1.6),
+        ),
+      ],
     );
   }
 }

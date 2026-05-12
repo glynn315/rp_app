@@ -27,7 +27,7 @@ class BoqKindChip extends StatelessWidget {
         upper.isEmpty ? 'BOM' : upper,
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: palette.$1,
           letterSpacing: 0.5,
         ),
