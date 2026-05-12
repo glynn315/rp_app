@@ -113,7 +113,7 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen>
                   'FILE A REQUEST',
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textMuted,
                     letterSpacing: 1.0,
                   ),

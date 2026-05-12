@@ -147,7 +147,7 @@ class _ErrorPanel extends StatelessWidget {
                 'Could not load',
                 style: TextStyle(
                   color: AppColors.error,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

@@ -1,4 +1,4 @@
-package com.example.rp_app
+package com.vespera.rpv_workforce
 
 import io.flutter.embedding.android.FlutterActivity
 

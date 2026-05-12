@@ -198,7 +198,7 @@ class _BoqPhotosScreenState extends ConsumerState<BoqPhotosScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
@@ -282,7 +282,7 @@ class _ScopeHeader extends StatelessWidget {
                   headline,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                 ),
@@ -334,7 +334,7 @@ class _AddImageCard extends StatelessWidget {
             'ADD A REFERENCE IMAGE',
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: AppColors.textMuted,
               letterSpacing: 1.0,
             ),
@@ -446,7 +446,7 @@ class _ImageRow extends StatelessWidget {
                       'INACTIVE',
                       style: TextStyle(
                         fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textMuted,
                         letterSpacing: 0.6,
                       ),
@@ -477,7 +477,7 @@ class _SectionLabel extends StatelessWidget {
       label,
       style: const TextStyle(
         fontSize: 11,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
         color: AppColors.textMuted,
         letterSpacing: 1.0,
       ),

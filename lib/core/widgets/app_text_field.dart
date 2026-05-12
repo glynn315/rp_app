@@ -55,11 +55,7 @@ class AppTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       focusNode: focusNode,
       textInputAction: textInputAction,
-      style: const TextStyle(
-        fontSize: 14,
-        color: AppColors.textPrimary,
-        fontWeight: FontWeight.w400,
-      ),
+      style: Theme.of(context).textTheme.bodyMedium,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -92,17 +88,17 @@ class AppDropdownField<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       validator: validator,
-      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+      style: Theme.of(context).textTheme.bodyMedium,
+      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.stone),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
       ),
-      dropdownColor: AppColors.surface,
+      dropdownColor: AppColors.pureWhite,
       isExpanded: true,
     );
   }

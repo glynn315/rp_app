@@ -14,7 +14,7 @@ class ShiftBar extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF6E6),
+          color: const Color(0xFFF5E6D0),
           border: Border.all(color: WorkReportColors.terracotta.withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -104,7 +104,7 @@ class _Cell extends StatelessWidget {
             time,
             style: const TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: WorkReportColors.charcoal,
             ),
           ),

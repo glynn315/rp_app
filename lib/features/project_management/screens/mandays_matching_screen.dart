@@ -77,7 +77,7 @@ class _MandaysRunCard extends StatelessWidget {
                       run.documentNo.isEmpty ? 'Run #${run.runId ?? '—'}' : run.documentNo,
                       style: const TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -208,7 +208,7 @@ class _DocstatusPill extends StatelessWidget {
         palette.$3,
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: palette.$1,
           letterSpacing: 0.5,
         ),
@@ -247,7 +247,7 @@ class _Metric extends StatelessWidget {
           value,
           style: TextStyle(
             fontSize: emphasise ? 13 : 12,
-            fontWeight: emphasise ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: emphasise ? FontWeight.w600 : FontWeight.w500,
             color: emphasise ? AppColors.primary : AppColors.textPrimary,
           ),
         ),
@@ -340,7 +340,7 @@ class MandaysMatchingDetailScreen extends ConsumerWidget {
                               r.fullName,
                               style: const TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary,
                               ),
                             ),

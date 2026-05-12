@@ -117,7 +117,7 @@ class _TabRow extends StatelessWidget {
         unselectedLabelColor: WorkReportColors.stone,
         indicatorColor: WorkReportColors.terracotta,
         indicatorWeight: 3,
-        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         tabs: [
           const Tab(text: 'Calendar'),
           Tab(
@@ -135,7 +135,7 @@ class _TabRow extends StatelessWidget {
                     ),
                     child: Text(
                       unmatchedCount.toString(),
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ]
@@ -245,7 +245,7 @@ class _TodayReportTab extends ConsumerWidget {
                     )
                   : const Text(
                       'Submit daily report',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
             ),
           ),
@@ -277,7 +277,7 @@ class _SubmittedView extends StatelessWidget {
             'Report submitted!',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: WorkReportColors.midnight,
             ),
           ),

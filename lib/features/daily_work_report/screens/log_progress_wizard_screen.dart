@@ -61,7 +61,7 @@ class _LogProgressWizardScreenState
         foregroundColor: WorkReportColors.midnight,
         title: const Text(
           'Log Progress',
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         // Top-left back arrow uses the same handler as the bottom Back
         // button so navigation is consistent across every step.
@@ -280,7 +280,7 @@ class _StepDots extends StatelessWidget {
                             '${i + 1}',
                             style: TextStyle(
                               color: active ? Colors.white : WorkReportColors.stone,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               fontSize: 12,
                             ),
                           ),
@@ -290,7 +290,7 @@ class _StepDots extends StatelessWidget {
                     _labels[i],
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+                      fontWeight: active ? FontWeight.w600 : FontWeight.w500,
                       color: active
                           ? WorkReportColors.midnight
                           : WorkReportColors.stone,
@@ -577,7 +577,7 @@ class _BoqStepView extends ConsumerWidget {
                                   it.itemLabel.isEmpty ? '—' : it.itemLabel,
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -611,7 +611,7 @@ class _BoqStepView extends ConsumerWidget {
                             money.format(it.amount),
                             style: const TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.primary,
                             ),
                           ),
@@ -694,6 +694,9 @@ class _PhotoStepViewState extends ConsumerState<_PhotoStepView> {
   @override
   Widget build(BuildContext context) {
     final w = ref.watch(logProgressWizardProvider);
+    final canAdd = w.canAddPhoto;
+    final count  = w.photoFiles.length;
+    final tileCount = count + (canAdd ? 1 : 0);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
@@ -701,75 +704,72 @@ class _PhotoStepViewState extends ConsumerState<_PhotoStepView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _StepHeader(
-            title: 'Step 3 · Progress photo',
+            title: 'Step 3 · Progress photos',
             subtitle: w.selectedBoq == null
-                ? 'Add a photo of the work in progress.'
-                : 'Photo for: ${w.selectedBoq!.itemLabel}',
+                ? 'Add up to ${LogProgressWizardState.maxPhotos} photos of the work in progress.'
+                : 'Photos for: ${w.selectedBoq!.itemLabel}  ($count/${LogProgressWizardState.maxPhotos})',
           ),
           const SizedBox(height: 16),
-          AspectRatio(
-            aspectRatio: 4 / 3,
-            child: GestureDetector(
-              onTap: w.busy ? null : _showSourceSheet,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: w.photoFile != null
-                        ? WorkReportColors.terracotta
-                        : WorkReportColors.stone.withValues(alpha: 0.4),
-                    width: w.photoFile != null ? 2 : 1,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: tileCount == 0 ? 1 : tileCount,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1,
+            ),
+            itemBuilder: (context, i) {
+              if (count == 0 && i == 0) {
+                return _AddPhotoTile(
+                  onTap: w.busy ? null : _showSourceSheet,
+                );
+              }
+              if (i == count) {
+                return _AddPhotoTile(
+                  onTap: w.busy ? null : _showSourceSheet,
+                );
+              }
+              return _PhotoTile(
+                file: w.photoFiles[i],
+                onRemove: w.busy
+                    ? null
+                    : () => ref
+                        .read(logProgressWizardProvider.notifier)
+                        .removePhoto(i),
+              );
+            },
+          ),
+          if (w.busy) ...[
+            const SizedBox(height: 12),
+            const Row(
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: w.photoFile == null
-                    ? const _PhotoPlaceholder()
-                    : Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // Preview the LOCAL bytes, not the server URL. On
-                          // Flutter web the static-asset URL is cross-origin
-                          // and Laravel's storage symlink isn't behind the
-                          // CORS middleware, so Image.network would fail.
-                          _XFileImage(file: w.photoFile!),
-                          if (w.busy)
-                            Container(
-                              color: Colors.black45,
-                              alignment: Alignment.center,
-                              child: const CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            ),
-                        ],
-                      ),
+                SizedBox(width: 10),
+                Text('Uploading…', style: TextStyle(fontSize: 13)),
+              ],
+            ),
+          ],
+          if (count > 0) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: w.busy
+                    ? null
+                    : () => ref
+                        .read(logProgressWizardProvider.notifier)
+                        .clearPhotos(),
+                icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                label: const Text('Remove all'),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: w.busy ? null : _showSourceSheet,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text(w.photoUrl == null ? 'Add photo' : 'Replace'),
-                ),
-              ),
-              if (w.photoUrl != null) ...[
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: w.busy
-                      ? null
-                      : () => ref
-                          .read(logProgressWizardProvider.notifier)
-                          .clearPhoto(),
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Remove photo',
-                ),
-              ],
-            ],
-          ),
+          ],
           if (w.error != null) ...[
             const SizedBox(height: 12),
             _ErrorBanner(message: w.error!),
@@ -780,28 +780,80 @@ class _PhotoStepViewState extends ConsumerState<_PhotoStepView> {
   }
 }
 
-class _PhotoPlaceholder extends StatelessWidget {
-  const _PhotoPlaceholder();
+class _PhotoTile extends StatelessWidget {
+  final XFile file;
+  final VoidCallback? onRemove;
+  const _PhotoTile({required this.file, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.add_a_photo_outlined,
-              size: 36, color: WorkReportColors.stone),
-          SizedBox(height: 8),
-          Text(
-            'Tap to take or pick a photo',
-            style: TextStyle(
-              fontSize: 12,
-              color: WorkReportColors.stone,
-              fontWeight: FontWeight.w600,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          // Preview the LOCAL bytes, not the server URL. On Flutter web the
+          // static-asset URL is cross-origin and historically the storage
+          // symlink wasn't behind the CORS middleware.
+          child: _XFileImage(file: file),
+        ),
+        Positioned(
+          top: 2,
+          right: 2,
+          child: Material(
+            color: Colors.black54,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onRemove,
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(Icons.close, size: 16, color: Colors.white),
+              ),
             ),
-            textAlign: TextAlign.center,
           ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AddPhotoTile extends StatelessWidget {
+  final VoidCallback? onTap;
+  const _AddPhotoTile({this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: WorkReportColors.stone.withValues(alpha: 0.4),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_a_photo_outlined,
+                  size: 28, color: WorkReportColors.stone),
+              SizedBox(height: 6),
+              Text(
+                'Add photo',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: WorkReportColors.stone,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -874,9 +926,14 @@ class _EvaluationStepViewState extends ConsumerState<_EvaluationStepView> {
   Future<void> _runEvaluation() async {
     final w = ref.read(logProgressWizardProvider);
     if (w.evaluation != null) return;
-    final file = w.photoFile;
-    if (file == null) return;
-    await ref.read(logProgressWizardProvider.notifier).runEvaluation(file);
+    if (w.photoFiles.isEmpty) return;
+    // Evaluate the most recently uploaded photo. The AI verdict is scored
+    // against a single image, and the last upload represents the worker's
+    // current view of the task — earlier shots are kept for the record but
+    // don't drive the verdict.
+    await ref
+        .read(logProgressWizardProvider.notifier)
+        .runEvaluation(w.photoFiles.last);
   }
 
   @override
@@ -894,14 +951,28 @@ class _EvaluationStepViewState extends ConsumerState<_EvaluationStepView> {
                 'GPT-4o checks whether your photo plausibly shows progress on the chosen BoQ item.',
           ),
           const SizedBox(height: 16),
-          if (w.photoFile != null)
+          if (w.photoFiles.isNotEmpty) ...[
+            // Show the photo the AI scored (always the most recently
+            // uploaded one — see _runEvaluation).
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: _XFileImage(file: w.photoFile!),
+                child: _XFileImage(file: w.photoFiles.last),
               ),
             ),
+            if (w.photoFiles.length > 1) ...[
+              const SizedBox(height: 8),
+              Text(
+                'AI reviewed the latest photo · ${w.photoFiles.length} attached',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: WorkReportColors.stone,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
           const SizedBox(height: 12),
           if (w.busy)
             Container(
@@ -997,7 +1068,7 @@ class _EvalCard extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                   color: fg,
                   fontSize: 14,
                 ),
@@ -1036,7 +1107,7 @@ class _DoneView extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               'Block added to today\'s draft.',
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -1058,7 +1129,7 @@ class _StepHeader extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
             fontSize: 16,
             color: WorkReportColors.midnight,
           ),

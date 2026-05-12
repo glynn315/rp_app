@@ -112,7 +112,7 @@ class _CurrentPeriodCard extends StatelessWidget {
                       style: TextStyle(
                         color: AppColors.textOnPrimary.withValues(alpha: 0.6),
                         fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -122,7 +122,7 @@ class _CurrentPeriodCard extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.textOnPrimary,
                         fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -199,7 +199,7 @@ class _RatingGauge extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.textOnPrimary,
                   fontSize: 24,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
@@ -327,7 +327,7 @@ class _KpiRow extends StatelessWidget {
                 kpi.rating.toStringAsFixed(1),
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: ratingColor,
                 ),
               ),
@@ -388,7 +388,7 @@ class _CommentsCard extends StatelessWidget {
                 'EVALUATOR COMMENTS',
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textMuted,
                   letterSpacing: 1.0,
                 ),
@@ -471,7 +471,7 @@ class _HistoryCard extends StatelessWidget {
                 period.overallRating.toStringAsFixed(1),
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                   color: color,
                 ),
               ),
@@ -498,7 +498,7 @@ class _SectionLabel extends StatelessWidget {
       text,
       style: const TextStyle(
         fontSize: 11,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: AppColors.textMuted,
         letterSpacing: 1.0,
       ),

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 /// RPV brand tokens for the Daily Work Report feature.
-/// Defined separately from `AppColors` because the screen spec calls for the
-/// Vespera (RPV) palette, which is distinct from the broader RPV Workforce app.
+/// Re-exports from [AppColors] so the whole app shares one source of truth.
 class WorkReportColors {
   WorkReportColors._();
 
-  static const Color midnight   = Color(0xFF0D1B2A);
-  static const Color terracotta = Color(0xFFC4622D);
-  static const Color ember      = Color(0xFFE07B45);
-  static const Color cream      = Color(0xFFFAF7F2);
-  static const Color mist       = Color(0xFFEEF2F5);
-  static const Color stone      = Color(0xFF8FA3B1);
-  static const Color charcoal   = Color(0xFF2C3E4A);
-  static const Color steel      = Color(0xFF2E5F80);
-  static const Color danger     = Color(0xFFB83232);
-  static const Color success    = Color(0xFF2D7A4F);
+  static const Color midnight   = AppColors.midnight;
+  static const Color terracotta = AppColors.terracotta;
+  static const Color ember      = AppColors.ember;
+  static const Color cream      = AppColors.cream;
+  static const Color mist       = AppColors.mist;
+  static const Color stone      = AppColors.stone;
+  static const Color charcoal   = AppColors.charcoalText;
+  static const Color steel      = AppColors.steel;
+  static const Color danger     = AppColors.error;
+  static const Color success    = AppColors.success;
 
   // Contract banner
   static const Color fieldContract = steel;

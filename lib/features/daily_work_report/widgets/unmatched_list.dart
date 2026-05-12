@@ -133,7 +133,7 @@ class _UnmatchedRowState extends ConsumerState<_UnmatchedRow> {
                 child: Text(
                   label,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: WorkReportColors.charcoal,
                   ),
                 ),

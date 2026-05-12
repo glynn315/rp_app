@@ -40,7 +40,7 @@ class _AddBlockSectionState extends ConsumerState<AddBlockSection> {
                       '+ Add work block',
                       style: TextStyle(
                         color: WorkReportColors.terracotta,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

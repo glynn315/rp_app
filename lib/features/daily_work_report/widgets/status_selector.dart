@@ -21,7 +21,7 @@ class StatusSelector extends ConsumerWidget {
             'DAY STATUS',
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: WorkReportColors.stone,
               letterSpacing: 0.8,
             ),
@@ -106,7 +106,7 @@ class _Pill extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: selected ? Colors.white : fill,
           ),
         ),

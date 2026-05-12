@@ -43,7 +43,7 @@ class CalendarGrid extends ConsumerWidget {
                     monthLabel,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: WorkReportColors.charcoal,
                     ),
                   ),
@@ -70,7 +70,7 @@ class CalendarGrid extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 11,
                               color: WorkReportColors.stone,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -150,7 +150,7 @@ class _DayCell extends StatelessWidget {
         day.toString(),
         style: TextStyle(
           color: fg,
-          fontWeight: state == 'inactive' ? FontWeight.w400 : FontWeight.w700,
+          fontWeight: state == 'inactive' ? FontWeight.w400 : FontWeight.w600,
           fontSize: 13,
         ),
       ),

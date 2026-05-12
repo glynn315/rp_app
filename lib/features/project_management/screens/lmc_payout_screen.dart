@@ -85,7 +85,7 @@ class _PayoutCard extends StatelessWidget {
                           : payout.documentNo,
                       style: const TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -224,7 +224,7 @@ class _DocstatusPill extends StatelessWidget {
         palette.$3,
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: palette.$1,
           letterSpacing: 0.5,
         ),
@@ -263,7 +263,7 @@ class _Metric extends StatelessWidget {
           value,
           style: TextStyle(
             fontSize: emphasise ? 13 : 12,
-            fontWeight: emphasise ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: emphasise ? FontWeight.w600 : FontWeight.w500,
             color: emphasise ? AppColors.primary : AppColors.textPrimary,
           ),
         ),
@@ -377,7 +377,7 @@ class _HeaderSummary extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.textOnPrimary,
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
           if (payout.projectName.isNotEmpty)
@@ -442,7 +442,7 @@ class _HeaderMetric extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.textOnPrimary,
             fontSize: 14,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -488,7 +488,7 @@ class _LineCard extends StatelessWidget {
                     '#${line.lineNo}',
                     style: const TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.primary,
                     ),
                   ),
@@ -501,7 +501,7 @@ class _LineCard extends StatelessWidget {
                       : line.description,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                   maxLines: 2,

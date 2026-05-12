@@ -480,7 +480,7 @@ class _BlockFormFieldsState extends ConsumerState<BlockFormFields> {
             'COMMON TASKS — tap to add',
             style: TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: WorkReportColors.stone,
               letterSpacing: 0.8,
             ),
@@ -636,7 +636,7 @@ class _AddTaskChip extends StatelessWidget {
               'New task',
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: WorkReportColors.midnight,
               ),
             ),
@@ -677,7 +677,7 @@ class _PhotoSection extends StatelessWidget {
               'VERIFICATION PHOTOS  ${photoUrls.length}/$maxPhotos',
               style: const TextStyle(
                 fontSize: 10,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 color: WorkReportColors.stone,
                 letterSpacing: 0.8,
               ),
@@ -827,7 +827,7 @@ class _AddPhotoTile extends StatelessWidget {
               'Add photo',
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: disabled
                     ? WorkReportColors.stone
                     : WorkReportColors.terracotta,

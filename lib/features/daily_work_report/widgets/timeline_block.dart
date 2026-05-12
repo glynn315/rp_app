@@ -72,7 +72,7 @@ class _TimelineBlockCardState extends ConsumerState<TimelineBlockCard> {
                       (widget.index + 1).toString(),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
                     ),
@@ -95,7 +95,7 @@ class _TimelineBlockCardState extends ConsumerState<TimelineBlockCard> {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 9,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                   letterSpacing: 0.6,
                                 ),
                               ),
