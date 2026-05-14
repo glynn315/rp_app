@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../consumption/models/consumption_models.dart';
+import '../../consumption/providers/consumption_provider.dart';
 import '../../daily_work_report/services/daily_work_report_api.dart';
 import '../../daily_work_report/theme/work_report_colors.dart';
 import '../models/project_management_models.dart';
@@ -123,6 +125,10 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
     return [
       _ScopeHeader(item: item, count: _entries.length),
       const SizedBox(height: AppDimensions.md),
+      if (item.lineKind == 'BOM' && item.lineId != null) ...[
+        _ConsumptionSummary(bomlineId: item.lineId!),
+        const SizedBox(height: AppDimensions.md),
+      ],
       if (_error != null) ...[
         _ErrorBanner(message: _error!),
         const SizedBox(height: AppDimensions.sm),
@@ -154,6 +160,260 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
         ),
       const SizedBox(height: AppDimensions.lg),
     ];
+  }
+}
+
+class _ConsumptionSummary extends ConsumerStatefulWidget {
+  final int bomlineId;
+  const _ConsumptionSummary({required this.bomlineId});
+
+  @override
+  ConsumerState<_ConsumptionSummary> createState() =>
+      _ConsumptionSummaryState();
+}
+
+class _ConsumptionSummaryState extends ConsumerState<_ConsumptionSummary> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final async =
+        ref.watch(consumptionHistoryByBomlineProvider(widget.bomlineId));
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        border: Border.all(color: AppColors.neutral100),
+      ),
+      child: async.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.all(AppDimensions.md),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Loading consumption…',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+              ),
+            ],
+          ),
+        ),
+        error: (e, _) => Padding(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          child: Text(
+            'Failed to load consumption: $e',
+            style: const TextStyle(fontSize: 12, color: AppColors.error),
+          ),
+        ),
+        data: (history) => _buildBody(history),
+      ),
+    );
+  }
+
+  Widget _buildBody(ConsumptionHistory history) {
+    final hasEntries = history.entryCount > 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: hasEntries ? () => setState(() => _expanded = !_expanded) : null,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimensions.md),
+            child: Row(
+              children: [
+                const Icon(Icons.inventory_2_outlined,
+                    size: 18, color: WorkReportColors.midnight),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'CONSUMPTION',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textMuted,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        hasEntries
+                            ? '${_fmtQty(history.totalConsumed)} consumed · ${history.entryCount} entr${history.entryCount == 1 ? 'y' : 'ies'}'
+                            : 'No consumption logged yet.',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (hasEntries &&
+                          (history.totalExcess > 0 || history.totalOver > 0)) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          [
+                            if (history.totalExcess > 0)
+                              'Excess ${_fmtQty(history.totalExcess)}',
+                            if (history.totalOver > 0)
+                              'Over budget ${_fmtQty(history.totalOver)}',
+                          ].join(' · '),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (hasEntries)
+                  Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    size: 18,
+                    color: AppColors.textMuted,
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (_expanded && hasEntries) ...[
+          const Divider(height: 1, color: AppColors.neutral100),
+          for (final entry in history.entries)
+            _ConsumptionEntryRow(entry: entry),
+        ],
+      ],
+    );
+  }
+
+  String _fmtQty(double v) {
+    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
+    return v.toStringAsFixed(2);
+  }
+}
+
+class _ConsumptionEntryRow extends StatelessWidget {
+  final ConsumptionHistoryEntry entry;
+  const _ConsumptionEntryRow({required this.entry});
+
+  String _fmtQty(double v) {
+    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
+    return v.toStringAsFixed(2);
+  }
+
+  String _fmtDate(DateTime? d) {
+    if (d == null) return '—';
+    return DateFormat('MMM d, y · HH:mm').format(d.toLocal());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPosted = entry.status == 'posted';
+    final actor = entry.postedBy ?? entry.updatedBy ?? '—';
+    final when = entry.postedAt ?? entry.sessionUpdatedAt;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppDimensions.md, 10, AppDimensions.md, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: (isPosted
+                                ? WorkReportColors.success
+                                : WorkReportColors.terracotta)
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        isPosted ? 'POSTED' : entry.status.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: isPosted
+                              ? WorkReportColors.success
+                              : WorkReportColors.terracotta,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _fmtDate(when),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  actor.isEmpty ? '—' : actor,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                if ((entry.remarks ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    entry.remarks!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${_fmtQty(entry.consumedQty)} ${entry.unit ?? ''}'.trim(),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              if (entry.overQty > 0)
+                Text(
+                  '+${_fmtQty(entry.overQty)} over',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

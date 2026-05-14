@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../consumption/models/consumption_models.dart';
 import '../../project_management/providers/project_management_provider.dart';
 import '../../project_management/widgets/boq_kind_chip.dart';
 import '../models/work_report_models.dart';
@@ -774,8 +774,192 @@ class _PhotoStepViewState extends ConsumerState<_PhotoStepView> {
             const SizedBox(height: 12),
             _ErrorBanner(message: w.error!),
           ],
+          const SizedBox(height: 20),
+          const _ConsumptionSection(),
         ],
       ),
+    );
+  }
+}
+
+class _ConsumptionSection extends ConsumerWidget {
+  const _ConsumptionSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final w = ref.watch(logProgressWizardProvider);
+    final notifier = ref.read(logProgressWizardProvider.notifier);
+    final projectId = w.selectedBoq?.projectId;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppColors.neutral100),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.inventory_2_outlined,
+                  size: 18, color: WorkReportColors.midnight),
+              const SizedBox(width: 6),
+              const Text(
+                'Consumption · optional',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: WorkReportColors.midnight,
+                ),
+              ),
+              const Spacer(),
+              if (w.consumptionLoaded)
+                TextButton.icon(
+                  onPressed: w.busy ? null : notifier.clearConsumption,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Reset'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Log any BOM material consumed during this block. A draft '
+            'consumption session is created when you submit.',
+            style: TextStyle(
+                fontSize: 11,
+                color: WorkReportColors.stone,
+                height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          if (projectId == null)
+            const Text(
+              'Pick a BoQ item in step 2 to load BOM items here.',
+              style: TextStyle(fontSize: 12, color: WorkReportColors.stone),
+            )
+          else if (!w.consumptionLoaded)
+            OutlinedButton.icon(
+              onPressed: w.busy ? null : notifier.loadConsumptionBom,
+              icon: const Icon(Icons.download_outlined, size: 18),
+              label: const Text('Load BOM items'),
+            )
+          else if (w.consumptionLines.isEmpty)
+            const Text(
+              'No BOM items found for this project.',
+              style: TextStyle(fontSize: 12, color: WorkReportColors.stone),
+            )
+          else
+            Column(
+              children: [
+                for (var i = 0; i < w.consumptionLines.length; i++) ...[
+                  _ConsumptionLineRow(
+                    line: w.consumptionLines[i],
+                    onChanged: (l) => notifier.setConsumptionLine(i, l),
+                  ),
+                  if (i < w.consumptionLines.length - 1)
+                    const Divider(height: 16),
+                ],
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConsumptionLineRow extends StatefulWidget {
+  final ConsumptionLine line;
+  final ValueChanged<ConsumptionLine> onChanged;
+
+  const _ConsumptionLineRow({required this.line, required this.onChanged});
+
+  @override
+  State<_ConsumptionLineRow> createState() => _ConsumptionLineRowState();
+}
+
+class _ConsumptionLineRowState extends State<_ConsumptionLineRow> {
+  late final TextEditingController _qty;
+
+  @override
+  void initState() {
+    super.initState();
+    _qty = TextEditingController(text: _fmt(widget.line.consumedQty));
+  }
+
+  @override
+  void dispose() {
+    _qty.dispose();
+    super.dispose();
+  }
+
+  String _fmt(double v) {
+    if (v == 0) return '';
+    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
+    return v.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final line = widget.line;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                line.itemDescription,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Budget: ${_fmt(line.bgtQty)} ${line.unit ?? ''}'.trim(),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: WorkReportColors.stone,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 88,
+          child: TextField(
+            controller: _qty,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+            ],
+            onChanged: (v) {
+              final qty = double.tryParse(v.trim()) ?? 0;
+              widget.onChanged(line.copyWith(
+                consumedQty: qty,
+                // Track loc_qty alongside consumed_qty so the backend's derive
+                // step doesn't clamp consumed to 0.
+                locQty: qty > line.locQty ? qty : line.locQty,
+              ));
+            },
+            decoration: InputDecoration(
+              hintText: 'Qty',
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

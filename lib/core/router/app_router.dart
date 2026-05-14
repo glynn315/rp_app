@@ -28,6 +28,8 @@ import '../../features/project_management/screens/boq_tasks_screen.dart';
 import '../../features/project_management/screens/lmc_payout_screen.dart';
 import '../../features/project_management/screens/mandays_matching_screen.dart';
 import '../../features/project_management/screens/work_in_progress_screen.dart';
+import '../../features/consumption/screens/consumption_projects_screen.dart';
+import '../../features/consumption/screens/consumption_session_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -171,6 +173,37 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/projects/mandays-matching',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const MandaysMatchingScreen(),
+      ),
+      GoRoute(
+        path: '/consumption',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ConsumptionProjectsScreen(),
+      ),
+      GoRoute(
+        path: '/consumption/load/:projectId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['projectId'] ?? '');
+          if (id == null) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid project id')),
+            );
+          }
+          return ConsumptionSessionScreen(projectId: id);
+        },
+      ),
+      GoRoute(
+        path: '/consumption/sessions/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid session id')),
+            );
+          }
+          return ConsumptionSessionScreen(sessionId: id);
+        },
       ),
       GoRoute(
         path: '/log-progress',

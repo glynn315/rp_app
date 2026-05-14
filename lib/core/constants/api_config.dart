@@ -11,6 +11,7 @@ class ApiConfig {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'https://api.rp-vespera.cloud/api',
+    // defaultValue: 'http://10.105.135.201:8000/api',
   );
 
   static const Duration timeout = Duration(seconds: 20);

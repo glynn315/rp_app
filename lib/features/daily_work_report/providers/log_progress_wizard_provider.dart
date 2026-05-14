@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 
 import '../../auth/providers/auth_provider.dart';
+import '../../consumption/models/consumption_models.dart';
+import '../../consumption/services/consumption_api.dart';
 import '../../project_management/models/project_management_models.dart';
 import '../models/work_report_models.dart';
 import '../services/daily_work_report_api.dart';
@@ -37,6 +39,12 @@ class LogProgressWizardState {
   // Step 4 — AI evaluation (runs against the most recently uploaded photo).
   final ProgressPhotoEvaluation? evaluation;
 
+  // Optional consumption — BOM lines for the selected BoQ's project. When
+  // populated, the worker can fill in qty consumed alongside the progress
+  // photo; on commit, a draft consumption session is created.
+  final List<ConsumptionLine> consumptionLines;
+  final bool consumptionLoaded;
+
   final bool busy;
   final String? error;
 
@@ -55,6 +63,8 @@ class LogProgressWizardState {
     this.photoUrls = const [],
     this.photoFiles = const [],
     this.evaluation,
+    this.consumptionLines = const [],
+    this.consumptionLoaded = false,
     this.busy = false,
     this.error,
   });
@@ -72,12 +82,15 @@ class LogProgressWizardState {
     List<String>? photoUrls,
     List<XFile>? photoFiles,
     ProgressPhotoEvaluation? evaluation,
+    List<ConsumptionLine>? consumptionLines,
+    bool? consumptionLoaded,
     bool? busy,
     String? error,
     bool clearError = false,
     bool clearEvaluation = false,
     bool clearPhotos = false,
     bool clearBoq = false,
+    bool clearConsumption = false,
   }) {
     return LogProgressWizardState(
       step: step ?? this.step,
@@ -93,6 +106,11 @@ class LogProgressWizardState {
       photoFiles: clearPhotos ? const [] : (photoFiles ?? this.photoFiles),
       evaluation:
           clearEvaluation ? null : (evaluation ?? this.evaluation),
+      consumptionLines: clearConsumption
+          ? const []
+          : (consumptionLines ?? this.consumptionLines),
+      consumptionLoaded:
+          clearConsumption ? false : (consumptionLoaded ?? this.consumptionLoaded),
       busy: busy ?? this.busy,
       error: clearError ? null : (error ?? this.error),
     );
@@ -162,6 +180,8 @@ class LogProgressWizardNotifier
   /// is the BoQ's projectId (sourced from the WIP replica, so the backend
   /// must skip the local-lookup existence check when boq_item_id is set).
   void setBoq(BoqItem item) {
+    final projectChanged =
+        state.selectedBoq?.projectId != item.projectId;
     state = state.copyWith(
       selectedBoq: item,
       tagType: TagType.project,
@@ -170,6 +190,8 @@ class LogProgressWizardNotifier
       // Switching BoQ invalidates an old evaluation since the model was scored
       // against the previous label.
       clearEvaluation: true,
+      // Picking a different project means the cached BOM no longer applies.
+      clearConsumption: projectChanged,
       clearError: true,
     );
   }
@@ -274,6 +296,55 @@ class LogProgressWizardNotifier
     }
   }
 
+  // ─── Optional consumption ───────────────────────────────────────
+
+  final ConsumptionApi _consumption = ConsumptionApi();
+
+  /// Fetches BOM lines for the selected BoQ's project from `/consumption/load`.
+  /// Safe to call repeatedly — subsequent calls re-load and discard local edits.
+  Future<bool> loadConsumptionBom() async {
+    final boq = state.selectedBoq;
+    final pid = boq?.projectId;
+    if (pid == null) {
+      state = state.copyWith(error: 'Pick a BoQ item first.');
+      return false;
+    }
+    state = state.copyWith(busy: true, clearError: true);
+    try {
+      final bundle = await _consumption.loadFromErp(pid, token: _token);
+      state = state.copyWith(
+        busy: false,
+        consumptionLines: bundle.lines,
+        consumptionLoaded: true,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(busy: false, error: 'Load BOM failed: $e');
+      return false;
+    }
+  }
+
+  void setConsumptionLine(int index, ConsumptionLine next) {
+    if (index < 0 || index >= state.consumptionLines.length) return;
+    final lines = [
+      for (var i = 0; i < state.consumptionLines.length; i++)
+        if (i == index) next else state.consumptionLines[i],
+    ];
+    state = state.copyWith(consumptionLines: lines);
+  }
+
+  void clearConsumption() {
+    state = state.copyWith(clearConsumption: true);
+  }
+
+  /// Filters out lines with no consumption entered — empty rows shouldn't
+  /// hit the API and inflate the session.
+  List<ConsumptionLine> _nonEmptyConsumptionLines() {
+    return state.consumptionLines
+        .where((l) => l.consumedQty > 0 || l.locQty > 0 || l.overQty > 0)
+        .toList();
+  }
+
   // ─── Finish ─────────────────────────────────────────────────────
 
   /// Persists the wizard's collected data via the dedicated progress-entry
@@ -323,6 +394,32 @@ class LogProgressWizardNotifier
         aiVerdict: state.evaluation?.verdict,
         token: _token,
       );
+
+      // Optional: persist a draft consumption session if the worker filled in
+      // any BOM lines below the photo grid. Failures here are surfaced but
+      // don't roll back the progress entry — the photo report is the primary
+      // artifact.
+      final filled = _nonEmptyConsumptionLines();
+      if (filled.isNotEmpty && boq.projectId != null) {
+        try {
+          final actor = _read.read(authProvider).user?.name;
+          await _consumption.createSession(
+            wipProjectId: boq.projectId,
+            projectType: 'project',
+            updatedBy: actor,
+            lines: filled,
+            token: _token,
+          );
+        } catch (e) {
+          state = state.copyWith(
+            busy: false,
+            step: WizardStep.done,
+            error: 'Progress saved, but consumption draft failed: $e',
+          );
+          return null;
+        }
+      }
+
       state = state.copyWith(busy: false, step: WizardStep.done);
       return null;
     } catch (e) {

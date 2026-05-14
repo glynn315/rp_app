@@ -50,7 +50,8 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.work_outline,
                     selectedIcon: Icons.work,
                     initiallyExpanded:
-                        currentLocation.startsWith('/projects/'),
+                        currentLocation.startsWith('/projects/') ||
+                            currentLocation.startsWith('/consumption'),
                     children: [
                       _DrawerTile(
                         icon: Icons.receipt_long_outlined,
@@ -98,6 +99,18 @@ class AppDrawer extends ConsumerWidget {
                         onTap: () {
                           Navigator.of(context).pop();
                           context.go('/projects/mandays-matching');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.inventory_2_outlined,
+                        selectedIcon: Icons.inventory_2,
+                        label: 'Consumption',
+                        selected:
+                            currentLocation.startsWith('/consumption'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/consumption');
                         },
                       ),
                     ],
