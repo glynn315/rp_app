@@ -11,3 +11,4 @@ part 'boq_item.dart';
 part 'wip_project.dart';
 part 'lmc_payout.dart';
 part 'mandays_matching.dart';
+part 'mandays_workflow.dart';

@@ -27,6 +27,9 @@ import '../../features/project_management/screens/boq_photos_screen.dart';
 import '../../features/project_management/screens/boq_tasks_screen.dart';
 import '../../features/project_management/screens/lmc_payout_screen.dart';
 import '../../features/project_management/screens/mandays_matching_screen.dart';
+import '../../features/project_management/screens/mandays_pending_screen.dart';
+import '../../features/project_management/screens/mandays_reports_screen.dart';
+import '../../features/project_management/screens/mandays_unacctd_ack_screen.dart';
 import '../../features/project_management/screens/work_in_progress_screen.dart';
 import '../../features/consumption/screens/consumption_projects_screen.dart';
 import '../../features/consumption/screens/consumption_session_screen.dart';
@@ -173,6 +176,35 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/projects/mandays-matching',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const MandaysMatchingScreen(),
+      ),
+      GoRoute(
+        path: '/projects/mandays-matching/pending',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MandaysPendingScreen(),
+      ),
+      GoRoute(
+        path: '/projects/mandays-matching/reports',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MandaysReportsScreen(),
+      ),
+      GoRoute(
+        // Signature-capture for an unaccounted-salary acknowledgement.
+        // The line/employee/amount/name come through `state.extra` as a
+        // Map<String, dynamic> so the caller doesn't have to URL-encode them.
+        path: '/projects/mandays-matching/unaccounted-ack',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = (state.extra as Map?)?.cast<String, dynamic>() ?? const {};
+          return MandaysUnacctdAckScreen(
+            unaccountedLineId: (extra['unaccounted_line_id'] as num?)?.toInt() ?? 0,
+            bparPersonId: (extra['bpar_i_person_id'] as num?)?.toInt(),
+            sBpartnerEmployeeId:
+                (extra['s_bpartner_employee_id'] as num?)?.toInt(),
+            amtUnaccountedSalary:
+                (extra['amt_unaccounted_salary'] as num?)?.toDouble() ?? 0.0,
+            employeeName: (extra['employee_name'] as String?) ?? '',
+          );
+        },
       ),
       GoRoute(
         path: '/consumption',

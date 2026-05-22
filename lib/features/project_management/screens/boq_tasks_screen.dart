@@ -8,7 +8,6 @@ import '../../daily_work_report/models/work_report_models.dart';
 import '../../daily_work_report/providers/work_report_provider.dart';
 import '../../daily_work_report/theme/work_report_colors.dart';
 import '../models/project_management_models.dart';
-import '../widgets/boq_kind_chip.dart';
 
 /// Full-screen page for managing scope-level task templates of a BOQ line.
 class BoqTasksScreen extends ConsumerStatefulWidget {
@@ -212,9 +211,9 @@ class _ScopeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headline = item.itemLabel.isNotEmpty
-        ? item.itemLabel
-        : (tagLabel.isNotEmpty ? tagLabel : 'Untitled BOQ line');
+    final headline = item.scopeName.isNotEmpty
+        ? item.scopeName
+        : (tagLabel.isNotEmpty ? tagLabel : 'Untitled scope');
 
     return Container(
       width: double.infinity,
@@ -227,21 +226,13 @@ class _ScopeHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              BoqKindChip(kind: item.lineKind),
-              const SizedBox(width: AppDimensions.xs),
-              Expanded(
-                child: Text(
-                  headline,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            headline,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 4),
           Text(

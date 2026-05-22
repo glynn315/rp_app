@@ -101,6 +101,22 @@ class ConsumptionApi {
     );
   }
 
+  /// Aggregated consumption across every BOM line under a project scope.
+  /// Backs the BoQ Entries screen's consumption read-out now that selection
+  /// happens at the scope level (no single bomline anchor).
+  Future<ConsumptionHistory> historyByScope(
+    int scopeId, {
+    String? token,
+  }) async {
+    final res = await _api.get(
+      '/consumption/by-scope/$scopeId',
+      token: token,
+    );
+    return ConsumptionHistory.fromJson(
+      Map<String, dynamic>.from(res['data'] as Map),
+    );
+  }
+
   Future<ConsumptionSession> postSession(
     int id, {
     required String postedBy,
@@ -112,6 +128,69 @@ class ConsumptionApi {
       token: token,
     );
     return ConsumptionSession.fromJson(
+      Map<String, dynamic>.from(res['data'] as Map),
+    );
+  }
+
+  /// `/consumption/categories` — project categories for RP / Vespera orgs.
+  /// Useful for filter dropdowns on the projects list.
+  Future<List<ConsumptionCategory>> listCategories({String? token}) async {
+    final res = await _api.get('/consumption/categories', token: token);
+    final raw = (res['data'] as List?) ?? const [];
+    return raw
+        .whereType<Map>()
+        .map((e) => ConsumptionCategory.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  /// `/consumption/sessions` — paginated list of saved sessions across every
+  /// project. Filters: [status] (`draft` / `posted` / `voided`),
+  /// [wipProjectId], [search] (matches reference_number or erp_document_no).
+  Future<ConsumptionSessionsPage> listSessions({
+    String? status,
+    int? wipProjectId,
+    String? search,
+    int page = 1,
+    int perPage = 25,
+    String? token,
+  }) async {
+    final qs = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+    };
+    if (status != null && status.isNotEmpty) qs['status'] = status;
+    if (wipProjectId != null) qs['wip_i_project_id'] = wipProjectId.toString();
+    if (search != null && search.isNotEmpty) qs['q'] = search;
+
+    final res = await _api.get(
+      '/consumption/sessions${_qs(qs)}',
+      token: token,
+    );
+    final raw = (res['data'] as List?) ?? const [];
+    final meta = (res['meta'] as Map?) ?? const {};
+    return ConsumptionSessionsPage(
+      items: raw
+          .whereType<Map>()
+          .map((e) => ConsumptionSessionSummary.fromJson(
+                Map<String, dynamic>.from(e),
+              ))
+          .toList(),
+      page: (meta['page'] as num?)?.toInt() ?? page,
+      perPage: (meta['per_page'] as num?)?.toInt() ?? perPage,
+      total: (meta['total'] as num?)?.toInt() ?? raw.length,
+      lastPage: (meta['last_page'] as num?)?.toInt() ?? 1,
+    );
+  }
+
+  /// `/consumption/sessions/{id}/erp-verify` — side-by-side reconciliation
+  /// of a posted session against the ERP `wip_t_project_consumption_line`
+  /// rows it produced. Per-line `match_status` flags drift.
+  Future<ErpVerifyResult> verifyAgainstErp(int id, {String? token}) async {
+    final res = await _api.get(
+      '/consumption/sessions/$id/erp-verify',
+      token: token,
+    );
+    return ErpVerifyResult.fromJson(
       Map<String, dynamic>.from(res['data'] as Map),
     );
   }

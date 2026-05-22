@@ -92,13 +92,37 @@ class AppDrawer extends ConsumerWidget {
                       _DrawerTile(
                         icon: Icons.fact_check_outlined,
                         selectedIcon: Icons.fact_check,
-                        label: 'Mandays Matching',
-                        selected: currentLocation
-                            .startsWith('/projects/mandays-matching'),
+                        label: 'Mandays Runs',
+                        selected: currentLocation ==
+                            '/projects/mandays-matching',
                         nested: true,
                         onTap: () {
                           Navigator.of(context).pop();
                           context.go('/projects/mandays-matching');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.assignment_turned_in_outlined,
+                        selectedIcon: Icons.assignment_turned_in,
+                        label: 'Mandays Matching',
+                        selected: currentLocation
+                            .startsWith('/projects/mandays-matching/pending'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/projects/mandays-matching/pending');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.summarize_outlined,
+                        selectedIcon: Icons.summarize,
+                        label: 'Mandays Reports',
+                        selected: currentLocation
+                            .startsWith('/projects/mandays-matching/reports'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/projects/mandays-matching/reports');
                         },
                       ),
                       _DrawerTile(

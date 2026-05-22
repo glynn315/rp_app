@@ -8,8 +8,9 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../consumption/models/consumption_models.dart';
+import '../../project_management/models/project_management_models.dart';
 import '../../project_management/providers/project_management_provider.dart';
-import '../../project_management/widgets/boq_kind_chip.dart';
+import '../../project_management/widgets/boq_project_group.dart';
 import '../models/work_report_models.dart';
 import '../providers/log_progress_wizard_provider.dart';
 import '../providers/work_report_provider.dart';
@@ -498,14 +499,32 @@ class _TimeBox extends StatelessWidget {
 // Step 2 — BoQ selection
 // ───────────────────────────────────────────────────────────────────────
 
-class _BoqStepView extends ConsumerWidget {
+class _BoqStepView extends ConsumerStatefulWidget {
   final LogProgressWizardState state;
   const _BoqStepView({super.key, required this.state});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_BoqStepView> createState() => _BoqStepViewState();
+}
+
+class _BoqStepViewState extends ConsumerState<_BoqStepView> {
+  /// Accordion: at most one project expanded at a time. `null` when collapsed.
+  int? _expandedProjectId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-expand the project that holds the currently-selected scope so a
+    // returning user sees their previous pick highlighted without a tap.
+    final sel = widget.state.selectedBoq;
+    if (sel?.projectId != null) _expandedProjectId = sel!.projectId;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final async = ref.watch(boqListProvider);
     final money = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
+    final state = widget.state;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -515,7 +534,7 @@ class _BoqStepView extends ConsumerWidget {
           child: _StepHeader(
             title: 'Step 2 · Select BoQ',
             subtitle:
-                'Pick the Bill-of-Quantities item this block of work falls under. The AI will check your photo against this scope.',
+                'Tap a project to see its scopes, then pick the scope this block of work falls under.',
           ),
         ),
         Expanded(
@@ -534,90 +553,31 @@ class _BoqStepView extends ConsumerWidget {
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Text(
-                      'No BoQ lines available. Make sure projects with BOM/LMC budgets exist.',
+                      'No BoQ projects available. Make sure projects with BOM/LMC budgets exist.',
                       textAlign: TextAlign.center,
                     ),
                   ),
                 );
               }
+              final groups = groupBoqByProject(items);
               return ListView.separated(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                itemCount: items.length,
+                itemCount: groups.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, i) {
-                  final it = items[i];
-                  final selected = state.selectedBoq?.lineId == it.lineId &&
-                      it.lineId != null;
-                  return InkWell(
-                    onTap: () => ref
+                  final g = groups[i];
+                  final isExpanded = _expandedProjectId == g.projectId;
+                  return _WizardProjectTile(
+                    group: g,
+                    money: money,
+                    isExpanded: isExpanded,
+                    selectedScopeId: state.selectedBoq?.scopeId,
+                    onHeaderTap: () => setState(() {
+                      _expandedProjectId = isExpanded ? null : g.projectId;
+                    }),
+                    onScopeTap: (it) => ref
                         .read(logProgressWizardProvider.notifier)
                         .setBoq(it),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: selected
-                              ? WorkReportColors.terracotta
-                              : AppColors.neutral100,
-                          width: selected ? 2 : 1,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              BoqKindChip(kind: it.lineKind),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  it.itemLabel.isEmpty ? '—' : it.itemLabel,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              if (selected)
-                                const Icon(Icons.check_circle,
-                                    color: WorkReportColors.terracotta,
-                                    size: 18),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            it.projectName,
-                            style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary),
-                          ),
-                          if (it.scopeName.isNotEmpty || it.stageName.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                [it.scopeName, it.stageName]
-                                    .where((s) => s.isNotEmpty)
-                                    .join(' · '),
-                                style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.textMuted),
-                              ),
-                            ),
-                          const SizedBox(height: 6),
-                          Text(
-                            money.format(it.amount),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   );
                 },
               );
@@ -625,6 +585,140 @@ class _BoqStepView extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Project-with-its-scopes row used by Step 2. Headline is the project + its
+/// rolled-up budget; tapping expands to the scope list, tapping a scope row
+/// selects it.
+class _WizardProjectTile extends StatelessWidget {
+  final BoqProjectGroup group;
+  final NumberFormat money;
+  final bool isExpanded;
+  final int? selectedScopeId;
+  final VoidCallback onHeaderTap;
+  final void Function(BoqItem) onScopeTap;
+
+  const _WizardProjectTile({
+    required this.group,
+    required this.money,
+    required this.isExpanded,
+    required this.selectedScopeId,
+    required this.onHeaderTap,
+    required this.onScopeTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final containsSelected = selectedScopeId != null &&
+        group.scopes.any((s) => s.scopeId == selectedScopeId);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: containsSelected
+              ? WorkReportColors.terracotta
+              : AppColors.neutral100,
+          width: containsSelected ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: onHeaderTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          group.projectName.isEmpty ? '—' : group.projectName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${group.scopes.length} scope${group.scopes.length == 1 ? '' : 's'}',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    money.format(group.totalAmount),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: 20,
+                    color: AppColors.textMuted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isExpanded)
+            for (final it in group.scopes)
+              InkWell(
+                onTap: () => onScopeTap(it),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: AppColors.neutral100),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              it.scopeName.isEmpty ? '—' : it.scopeName,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              money.format(it.amount),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (it.scopeId == selectedScopeId &&
+                          selectedScopeId != null)
+                        const Icon(Icons.check_circle,
+                            color: WorkReportColors.terracotta, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+        ],
+      ),
     );
   }
 }
@@ -707,7 +801,7 @@ class _PhotoStepViewState extends ConsumerState<_PhotoStepView> {
             title: 'Step 3 · Progress photos',
             subtitle: w.selectedBoq == null
                 ? 'Add up to ${LogProgressWizardState.maxPhotos} photos of the work in progress.'
-                : 'Photos for: ${w.selectedBoq!.itemLabel}  ($count/${LogProgressWizardState.maxPhotos})',
+                : 'Photos for: ${w.selectedBoq!.scopeName}  ($count/${LogProgressWizardState.maxPhotos})',
           ),
           const SizedBox(height: 16),
           GridView.builder(

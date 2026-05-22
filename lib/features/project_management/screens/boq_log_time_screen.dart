@@ -9,9 +9,8 @@ import '../../daily_work_report/models/work_report_models.dart';
 import '../../daily_work_report/providers/work_report_provider.dart';
 import '../../daily_work_report/theme/work_report_colors.dart';
 import '../models/project_management_models.dart';
-import '../widgets/boq_kind_chip.dart';
 
-/// Full-screen page for logging a work-block against a BOQ line.
+/// Full-screen page for logging a work-block against a project scope.
 class BoqLogTimeScreen extends ConsumerStatefulWidget {
   final BoqItem? item;
 
@@ -272,29 +271,21 @@ class _BoqLogTimeScreenState extends ConsumerState<BoqLogTimeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  BoqKindChip(kind: item.lineKind),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      item.itemLabel.isNotEmpty
-                          ? item.itemLabel
-                          : (item.projectName.isNotEmpty
-                              ? item.projectName
-                              : 'Untitled BOQ line'),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+              Text(
+                item.scopeName.isNotEmpty
+                    ? item.scopeName
+                    : (item.projectName.isNotEmpty
+                        ? item.projectName
+                        : 'Untitled scope'),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              if (item.projectName.isNotEmpty) ...[
+              if (item.projectName.isNotEmpty && item.scopeName.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   item.projectName,
@@ -305,14 +296,6 @@ class _BoqLogTimeScreenState extends ConsumerState<BoqLogTimeScreen> {
                   ),
                 ),
               ],
-              if (item.scopeName.isNotEmpty || item.stageName.isNotEmpty)
-                Text(
-                  [item.scopeName, item.stageName]
-                      .where((s) => s.isNotEmpty)
-                      .join(' · '),
-                  style:
-                      const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                ),
               const SizedBox(height: 6),
               Text(
                 money.format(item.amount),

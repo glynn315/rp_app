@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -17,7 +18,7 @@ class MandaysMatchingScreen extends ConsumerWidget {
     final runs = async.value ?? const <MandaysMatchingRun>[];
 
     return ProjectListShell(
-      title: 'Mandays Matching',
+      title: 'Mandays Runs',
       emptyIcon: Icons.fact_check_outlined,
       emptyMessage:
           'No mandays-matching runs yet. They appear once payroll runs are pulled from TAPS and matched against project scopes.',
@@ -37,6 +38,13 @@ class MandaysMatchingScreen extends ConsumerWidget {
         await ref.read(mandaysRunsProvider.future);
       },
       subtitle: runs.isEmpty ? null : Text('${runs.length} run(s) on file'),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.go('/projects/mandays-matching/pending'),
+        icon: const Icon(Icons.assignment_turned_in),
+        label: const Text('Match'),
+        backgroundColor: AppColors.terracotta,
+        foregroundColor: AppColors.textOnPrimary,
+      ),
     );
   }
 }

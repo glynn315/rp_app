@@ -174,11 +174,11 @@ class LogProgressWizardNotifier
 
   // ─── Step 2 — BoQ ───────────────────────────────────────────────
 
-  /// Selecting a BoQ item also stamps the work block's project tag — the
+  /// Selecting a scope also stamps the work block's project tag — the
   /// wizard no longer asks the worker to pick a project separately, since
-  /// the BoQ already names one. tag_type is always 'project' here; tag_id
-  /// is the BoQ's projectId (sourced from the WIP replica, so the backend
-  /// must skip the local-lookup existence check when boq_item_id is set).
+  /// the scope already names one. tag_type is always 'project' here; tag_id
+  /// is the scope's projectId (sourced from the WIP replica, so the backend
+  /// must skip the local-lookup existence check when scope_id is set).
   void setBoq(BoqItem item) {
     final projectChanged =
         state.selectedBoq?.projectId != item.projectId;
@@ -263,29 +263,21 @@ class LogProgressWizardNotifier
   Future<bool> runEvaluation(XFile file) async {
     final boq = state.selectedBoq;
     if (boq == null) {
-      state = state.copyWith(error: 'No BoQ item selected.');
+      state = state.copyWith(error: 'No scope selected.');
       return false;
     }
-    // Some BoQ rows from the WIP replica have a blank `item_label`; the list
-    // UI shows '—' in that case. The eval endpoint requires a non-empty
-    // boq_label, so fall back to a join of whatever metadata IS present.
-    final fallbackParts = [
-      boq.lineKind,
-      boq.scopeName,
-      boq.stageName,
-    ].where((s) => s.isNotEmpty).toList();
-    final boqLabel = boq.itemLabel.isNotEmpty
-        ? boq.itemLabel
-        : (fallbackParts.isNotEmpty ? fallbackParts.join(' · ') : 'BoQ item');
+    final scopeId = boq.scopeId?.toString();
+    if (scopeId == null || scopeId.isEmpty) {
+      state = state.copyWith(error: 'Selected scope has no id.');
+      return false;
+    }
     state = state.copyWith(busy: true, clearError: true, clearEvaluation: true);
     try {
       final ev = await _api.evaluateProgressPhoto(
         file: file,
-        boqLabel: boqLabel,
+        scopeId: scopeId,
+        scopeName: boq.scopeName.isNotEmpty ? boq.scopeName : 'Scope',
         projectName: boq.projectName,
-        scopeName: boq.scopeName,
-        stageName: boq.stageName,
-        boqItemId: boq.lineId?.toString(),
         token: _token,
       );
       state = state.copyWith(busy: false, evaluation: ev);
@@ -388,8 +380,8 @@ class LogProgressWizardNotifier
         tagId: tagId,
         tagLabel: tagLabel,
         photoPaths: state.photoPaths,
-        boqItemId: boq.lineId?.toString(),
-        boqLabel: boq.itemLabel,
+        scopeId: boq.scopeId?.toString(),
+        scopeName: boq.scopeName,
         aiEvaluation: state.evaluation?.evaluation,
         aiVerdict: state.evaluation?.verdict,
         token: _token,

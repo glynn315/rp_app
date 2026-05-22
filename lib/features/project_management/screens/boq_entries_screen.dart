@@ -11,10 +11,9 @@ import '../../consumption/providers/consumption_provider.dart';
 import '../../daily_work_report/services/daily_work_report_api.dart';
 import '../../daily_work_report/theme/work_report_colors.dart';
 import '../models/project_management_models.dart';
-import '../widgets/boq_kind_chip.dart';
 
 /// Lists every work block the current employee has logged against a single
-/// BoQ line. Compact rows; tap to expand for photos, AI verdict, and notes.
+/// project scope. Compact rows; tap to expand for photos, AI verdict, notes.
 class BoqEntriesScreen extends ConsumerStatefulWidget {
   final BoqItem? item;
 
@@ -32,7 +31,7 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
   String? _error;
 
   BoqItem? get _item => widget.item;
-  String get _boqItemId => _item?.lineId?.toString() ?? '';
+  String get _scopeId => _item?.scopeId?.toString() ?? '';
 
   @override
   void initState() {
@@ -48,8 +47,8 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
       setState(() => _error = 'No signed-in employee — log in again.');
       return;
     }
-    if (_boqItemId.isEmpty) {
-      setState(() => _error = 'This BOQ line has no line_id.');
+    if (_scopeId.isEmpty) {
+      setState(() => _error = 'This scope has no id.');
       return;
     }
     setState(() {
@@ -59,7 +58,7 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
     try {
       final list = await _api.listBoqEntries(
         employeeId: empId,
-        boqItemId: _boqItemId,
+        scopeId: _scopeId,
       );
       if (!mounted) return;
       setState(() {
@@ -125,8 +124,8 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
     return [
       _ScopeHeader(item: item, count: _entries.length),
       const SizedBox(height: AppDimensions.md),
-      if (item.lineKind == 'BOM' && item.lineId != null) ...[
-        _ConsumptionSummary(bomlineId: item.lineId!),
+      if (item.scopeId != null) ...[
+        _ConsumptionSummary(scopeId: item.scopeId!),
         const SizedBox(height: AppDimensions.md),
       ],
       if (_error != null) ...[
@@ -164,8 +163,8 @@ class _BoqEntriesScreenState extends ConsumerState<BoqEntriesScreen> {
 }
 
 class _ConsumptionSummary extends ConsumerStatefulWidget {
-  final int bomlineId;
-  const _ConsumptionSummary({required this.bomlineId});
+  final int scopeId;
+  const _ConsumptionSummary({required this.scopeId});
 
   @override
   ConsumerState<_ConsumptionSummary> createState() =>
@@ -178,7 +177,7 @@ class _ConsumptionSummaryState extends ConsumerState<_ConsumptionSummary> {
   @override
   Widget build(BuildContext context) {
     final async =
-        ref.watch(consumptionHistoryByBomlineProvider(widget.bomlineId));
+        ref.watch(consumptionHistoryByScopeProvider(widget.scopeId));
 
     return Container(
       decoration: BoxDecoration(
@@ -425,12 +424,9 @@ class _ScopeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headline = item.itemLabel.isNotEmpty
-        ? item.itemLabel
-        : (item.scopeName.isNotEmpty ? item.scopeName : item.projectName);
-    final sub = [item.scopeName, item.stageName]
-        .where((s) => s.isNotEmpty)
-        .join(' · ');
+    final headline = item.scopeName.isNotEmpty
+        ? item.scopeName
+        : (item.projectName.isNotEmpty ? item.projectName : '—');
 
     return Container(
       width: double.infinity,
@@ -443,26 +439,18 @@ class _ScopeHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              BoqKindChip(kind: item.lineKind),
-              const SizedBox(width: AppDimensions.xs),
-              Expanded(
-                child: Text(
-                  headline,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            headline,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
           ),
-          if (sub.isNotEmpty) ...[
+          if (item.projectName.isNotEmpty && item.scopeName.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              sub,
+              item.projectName,
               style: const TextStyle(
                 fontSize: 11,
                 color: AppColors.textMuted,
@@ -473,7 +461,7 @@ class _ScopeHeader extends StatelessWidget {
           ],
           const SizedBox(height: 6),
           Text(
-            '$count entr${count == 1 ? 'y' : 'ies'} for this BOQ',
+            '$count entr${count == 1 ? 'y' : 'ies'} for this scope',
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,

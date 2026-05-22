@@ -15,7 +15,6 @@ class ProjectListFilter {
   final String search;
   final int? projectId;
   final String? status;     // BOQ/WIP project_status, or LMC docstatus
-  final String? lineKind;   // BOQ only: BOM | LABOR | MISC | LMC
   final DateTime? dateFrom;
   final DateTime? dateTo;
 
@@ -23,7 +22,6 @@ class ProjectListFilter {
     this.search = '',
     this.projectId,
     this.status,
-    this.lineKind,
     this.dateFrom,
     this.dateTo,
   });
@@ -34,7 +32,6 @@ class ProjectListFilter {
       search.isNotEmpty ||
       projectId != null ||
       (status != null && status!.isNotEmpty) ||
-      (lineKind != null && lineKind!.isNotEmpty) ||
       dateFrom != null ||
       dateTo != null;
 
@@ -42,7 +39,6 @@ class ProjectListFilter {
     String? search,
     Object? projectId = _unset,
     Object? status = _unset,
-    Object? lineKind = _unset,
     Object? dateFrom = _unset,
     Object? dateTo = _unset,
   }) {
@@ -50,7 +46,6 @@ class ProjectListFilter {
       search: search ?? this.search,
       projectId: projectId == _unset ? this.projectId : projectId as int?,
       status: status == _unset ? this.status : status as String?,
-      lineKind: lineKind == _unset ? this.lineKind : lineKind as String?,
       dateFrom: dateFrom == _unset ? this.dateFrom : dateFrom as DateTime?,
       dateTo: dateTo == _unset ? this.dateTo : dateTo as DateTime?,
     );
@@ -65,7 +60,6 @@ class ProjectListFilterController extends StateNotifier<ProjectListFilter> {
   void setSearch(String v) => state = state.copyWith(search: v);
   void setProjectId(int? v) => state = state.copyWith(projectId: v);
   void setStatus(String? v) => state = state.copyWith(status: v);
-  void setLineKind(String? v) => state = state.copyWith(lineKind: v);
   void setDateFrom(DateTime? v) => state = state.copyWith(dateFrom: v);
   void setDateTo(DateTime? v) => state = state.copyWith(dateTo: v);
   void reset() => state = ProjectListFilter.empty;
@@ -107,7 +101,6 @@ final boqListProvider =
     token: token,
     projectId: f.projectId,
     status: f.status,
-    lineKind: f.lineKind,
     categoryIds: kBoqRpCategoryIds,
     search: f.search,
   );
@@ -175,4 +168,122 @@ final projectLookupProvider =
   final api = ref.watch(projectManagementApiProvider);
   final token = ref.watch(authProvider).token;
   return api.projectLookup(token: token);
+});
+
+// =======================================================================
+// Mandays Matching — maker/checker workflow
+// =======================================================================
+
+/// Filter state for the Pending Matching list. Defaults to the last 14 days
+/// and all statuses; matches the desktop client's default range.
+class MandaysPendingFilter {
+  final DateTime dateFrom;
+  final DateTime dateTo;
+  final String? status; // null => ALL; UNMATCHED | PREMATCHED | MATCHED
+  final String search;
+
+  const MandaysPendingFilter({
+    required this.dateFrom,
+    required this.dateTo,
+    this.status,
+    this.search = '',
+  });
+
+  factory MandaysPendingFilter.defaults() {
+    final now = DateTime.now();
+    return MandaysPendingFilter(
+      dateFrom: now.subtract(const Duration(days: 13)),
+      dateTo: now,
+    );
+  }
+
+  MandaysPendingFilter copyWith({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    Object? status = _unset,
+    String? search,
+  }) =>
+      MandaysPendingFilter(
+        dateFrom: dateFrom ?? this.dateFrom,
+        dateTo: dateTo ?? this.dateTo,
+        status: status == _unset ? this.status : status as String?,
+        search: search ?? this.search,
+      );
+}
+
+class MandaysPendingFilterController
+    extends StateNotifier<MandaysPendingFilter> {
+  MandaysPendingFilterController() : super(MandaysPendingFilter.defaults());
+
+  void setRange(DateTime from, DateTime to) =>
+      state = state.copyWith(dateFrom: from, dateTo: to);
+  void setStatus(String? v) => state = state.copyWith(status: v);
+  void setSearch(String v) => state = state.copyWith(search: v);
+}
+
+final mandaysPendingFilterProvider = StateNotifierProvider<
+    MandaysPendingFilterController, MandaysPendingFilter>(
+  (ref) => MandaysPendingFilterController(),
+);
+
+final mandaysPendingProvider =
+    FutureProvider.autoDispose<List<MandaysPendingRow>>((ref) async {
+  final api = ref.watch(projectManagementApiProvider);
+  final token = ref.watch(authProvider).token;
+  final f = ref.watch(mandaysPendingFilterProvider);
+  return api.mandaysPendingList(
+    token: token,
+    dateFrom: f.dateFrom,
+    dateTo: f.dateTo,
+    status: f.status,
+    search: f.search,
+  );
+});
+
+/// Key identifying one (employee, date) pair for the detail providers.
+class MandaysEmployeeDateKey {
+  final int employeeId;
+  final DateTime date;
+  const MandaysEmployeeDateKey(this.employeeId, this.date);
+
+  @override
+  bool operator ==(Object other) =>
+      other is MandaysEmployeeDateKey &&
+      other.employeeId == employeeId &&
+      other.date.year == date.year &&
+      other.date.month == date.month &&
+      other.date.day == date.day;
+
+  @override
+  int get hashCode => Object.hash(employeeId, date.year, date.month, date.day);
+}
+
+final mandaysTaLogsProvider = FutureProvider.autoDispose
+    .family<List<MandaysTaLog>, MandaysEmployeeDateKey>((ref, key) async {
+  final api = ref.watch(projectManagementApiProvider);
+  final token = ref.watch(authProvider).token;
+  return api.mandaysTaLogs(
+    employeeId: key.employeeId,
+    date: key.date,
+    token: token,
+  );
+});
+
+final mandaysEmployeeMatchingsProvider = FutureProvider.autoDispose
+    .family<List<MandaysMatchingDoc>, MandaysEmployeeDateKey>(
+        (ref, key) async {
+  final api = ref.watch(projectManagementApiProvider);
+  final token = ref.watch(authProvider).token;
+  return api.mandaysEmployeeMatchings(
+    employeeId: key.employeeId,
+    date: key.date,
+    token: token,
+  );
+});
+
+final mandaysEmployeeDerProvider =
+    FutureProvider.autoDispose.family<MandaysDer?, int>((ref, employeeId) async {
+  final api = ref.watch(projectManagementApiProvider);
+  final token = ref.watch(authProvider).token;
+  return api.mandaysEmployeeDer(employeeId: employeeId, token: token);
 });

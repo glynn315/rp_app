@@ -8,38 +8,58 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../daily_work_report/theme/work_report_colors.dart';
 import '../models/project_management_models.dart';
 import '../providers/project_management_provider.dart';
-import '../widgets/boq_kind_chip.dart';
+import '../widgets/boq_project_group.dart';
 import '../widgets/project_filter_bar.dart';
 import '../widgets/project_list_shell.dart';
 
-class BillOfQuantitiesScreen extends ConsumerWidget {
+class BillOfQuantitiesScreen extends ConsumerStatefulWidget {
   const BillOfQuantitiesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BillOfQuantitiesScreen> createState() =>
+      _BillOfQuantitiesScreenState();
+}
+
+class _BillOfQuantitiesScreenState
+    extends ConsumerState<BillOfQuantitiesScreen> {
+  /// Accordion: at most one project expanded at a time. `null` when collapsed.
+  int? _expandedProjectId;
+
+  @override
+  Widget build(BuildContext context) {
     final async = ref.watch(boqListProvider);
     final items = async.value ?? const <BoqItem>[];
+    final groups = groupBoqByProject(items);
 
     return ProjectListShell(
       title: 'Bill of Quantities',
       emptyIcon: Icons.receipt_long,
       emptyMessage:
-          'No BoQ lines found. Make sure projects with BOM/LMC budgets exist on the WIP replica.',
+          'No projects found. Make sure projects with BOM/LMC budgets exist on the WIP replica.',
       isLoading: async.isLoading,
       error: async.hasError ? async.error : null,
-      itemCount: items.length,
-      itemBuilder: (context, i) => _BoqItemCard(item: items[i]),
+      itemCount: groups.length,
+      itemBuilder: (context, i) {
+        final g = groups[i];
+        final isExpanded = _expandedProjectId == g.projectId;
+        return _BoqProjectCard(
+          group: g,
+          isExpanded: isExpanded,
+          onHeaderTap: () => setState(() {
+            _expandedProjectId = isExpanded ? null : g.projectId;
+          }),
+        );
+      },
       onRefresh: () async {
         ref.invalidate(boqListProvider);
         await ref.read(boqListProvider.future);
       },
-      subtitle: items.isEmpty
+      subtitle: groups.isEmpty
           ? null
-          : Text('${items.length} line item(s) · latest budget per stage'),
+          : Text('${groups.length} project(s) · tap to expand scopes'),
       header: ProjectFilterBar(
         filterProvider: boqFilterProvider,
         searchHint: 'Search project / scope…',
-        kindOptions: ProjectFilterBar.boqKindOptions,
         statusOptions: ProjectFilterBar.boqStatusOptions,
         showDateRange: false,
       ),
@@ -47,132 +67,163 @@ class BillOfQuantitiesScreen extends ConsumerWidget {
   }
 }
 
-class _BoqItemCard extends StatelessWidget {
-  final BoqItem item;
+class _BoqProjectCard extends StatelessWidget {
+  final BoqProjectGroup group;
+  final bool isExpanded;
+  final VoidCallback onHeaderTap;
 
-  const _BoqItemCard({required this.item});
+  const _BoqProjectCard({
+    required this.group,
+    required this.isExpanded,
+    required this.onHeaderTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final money = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
-    final qty = NumberFormat('#,##0.##');
 
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         border: Border.all(color: AppColors.neutral100),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: onHeaderTap,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            child: Padding(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          group.projectName.isEmpty ? '—' : group.projectName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${group.scopes.length} scope${group.scopes.length == 1 ? '' : 's'}'
+                          '${group.projectDocumentNo.isEmpty ? '' : ' · ${group.projectDocumentNo}'}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    money.format(group.totalAmount),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: AppDimensions.xs),
+                  Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: 22,
+                    color: AppColors.textMuted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isExpanded)
+            for (final s in group.scopes) _ScopeRow(item: s, money: money),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScopeRow extends StatelessWidget {
+  final BoqItem item;
+  final NumberFormat money;
+
+  const _ScopeRow({required this.item, required this.money});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        AppDimensions.sm,
+        AppDimensions.md,
+        AppDimensions.sm,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: AppColors.neutral100),
+        ),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              BoqKindChip(kind: item.lineKind),
-              const SizedBox(width: AppDimensions.xs),
               Expanded(
                 child: Text(
-                  item.itemLabel.isEmpty ? '—' : item.itemLabel,
+                  item.scopeName.isEmpty ? '—' : item.scopeName,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                 ),
               ),
-              if (item.isLocked)
-                const Padding(
-                  padding: EdgeInsets.only(left: AppDimensions.xs),
-                  child: Icon(Icons.lock, size: 14, color: AppColors.textMuted),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          Text(
-            item.projectName.isEmpty ? '—' : item.projectName,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (item.scopeName.isNotEmpty || item.stageName.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                [item.scopeName, item.stageName]
-                    .where((s) => s.isNotEmpty)
-                    .join(' · '),
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-              ),
-            ),
-          const SizedBox(height: AppDimensions.sm),
-          Row(
-            children: [
-              Expanded(child: _MetricCol(label: 'Qty', value: qty.format(item.qty))),
-              Expanded(child: _MetricCol(label: 'Rate', value: money.format(item.rate))),
-              Expanded(
-                child: _MetricCol(
-                  label: 'Amount',
-                  value: money.format(item.amount),
-                  emphasise: true,
+              Text(
+                money.format(item.amount),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppDimensions.xs),
-          const Divider(height: 1),
-          const SizedBox(height: AppDimensions.xs),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 4,
             children: [
-              TextButton.icon(
+              _ActionButton(
+                icon: Icons.checklist_rtl,
+                label: 'Tasks',
                 onPressed: () =>
                     context.push('/projects/boq/tasks', extra: item),
-                icon: const Icon(Icons.checklist_rtl, size: 16),
-                label: const Text('Tasks'),
-                style: TextButton.styleFrom(
-                  foregroundColor: WorkReportColors.midnight,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                ),
               ),
-              const SizedBox(width: 4),
-              TextButton.icon(
+              _ActionButton(
+                icon: Icons.image_outlined,
+                label: 'Photos',
                 onPressed: () =>
                     context.push('/projects/boq/photos', extra: item),
-                icon: const Icon(Icons.image_outlined, size: 16),
-                label: const Text('Photos'),
-                style: TextButton.styleFrom(
-                  foregroundColor: WorkReportColors.midnight,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                ),
               ),
-              const SizedBox(width: 4),
-              TextButton.icon(
+              _ActionButton(
+                icon: Icons.list_alt,
+                label: 'Entries',
                 onPressed: () =>
                     context.push('/projects/boq/entries', extra: item),
-                icon: const Icon(Icons.list_alt, size: 16),
-                label: const Text('Entries'),
-                style: TextButton.styleFrom(
-                  foregroundColor: WorkReportColors.midnight,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                ),
               ),
-              const SizedBox(width: 4),
-              TextButton.icon(
+              _ActionButton(
+                icon: Icons.access_time,
+                label: 'Log time',
+                color: WorkReportColors.terracotta,
                 onPressed: () =>
                     context.push('/projects/boq/log-time', extra: item),
-                icon: const Icon(Icons.access_time, size: 16),
-                label: const Text('Log time'),
-                style: TextButton.styleFrom(
-                  foregroundColor: WorkReportColors.terracotta,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                ),
               ),
             ],
           ),
@@ -182,41 +233,30 @@ class _BoqItemCard extends StatelessWidget {
   }
 }
 
-class _MetricCol extends StatelessWidget {
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final String value;
-  final bool emphasise;
+  final VoidCallback onPressed;
+  final Color? color;
 
-  const _MetricCol({
+  const _ActionButton({
+    required this.icon,
     required this.label,
-    required this.value,
-    this.emphasise = false,
+    required this.onPressed,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: AppColors.textMuted,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: emphasise ? 14 : 13,
-            fontWeight: emphasise ? FontWeight.w600 : FontWeight.w500,
-            color: emphasise ? AppColors.primary : AppColors.textPrimary,
-          ),
-        ),
-      ],
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: TextButton.styleFrom(
+        foregroundColor: color ?? WorkReportColors.midnight,
+        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      ),
     );
   }
 }

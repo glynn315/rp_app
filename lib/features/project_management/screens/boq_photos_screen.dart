@@ -8,9 +8,8 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../daily_work_report/services/daily_work_report_api.dart';
 import '../../daily_work_report/theme/work_report_colors.dart';
 import '../models/project_management_models.dart';
-import '../widgets/boq_kind_chip.dart';
 
-/// Manage expected-output reference images for a single BOQ line. Supervisor
+/// Manage expected-output reference images for a project scope. Supervisor
 /// uploads "what done looks like" shots; the field worker compares their
 /// progress photo against these in the Log-Progress wizard.
 class BoqPhotosScreen extends ConsumerStatefulWidget {
@@ -33,8 +32,8 @@ class _BoqPhotosScreenState extends ConsumerState<BoqPhotosScreen> {
   String? _error;
 
   BoqItem? get _item => widget.item;
-  String get _boqItemId => _item?.lineId?.toString() ?? '';
-  String get _boqLabel => _item?.itemLabel ?? '';
+  String get _scopeId => _item?.scopeId?.toString() ?? '';
+  String get _scopeName => _item?.scopeName ?? '';
 
   @override
   void initState() {
@@ -51,8 +50,8 @@ class _BoqPhotosScreenState extends ConsumerState<BoqPhotosScreen> {
   }
 
   Future<void> _load() async {
-    if (_boqItemId.isEmpty) {
-      setState(() => _error = 'This BOQ line has no line_id — cannot attach images.');
+    if (_scopeId.isEmpty) {
+      setState(() => _error = 'This scope has no id — cannot attach images.');
       return;
     }
     setState(() {
@@ -61,7 +60,7 @@ class _BoqPhotosScreenState extends ConsumerState<BoqPhotosScreen> {
     });
     try {
       // Admin listing so a supervisor can see deactivated rows too.
-      final list = await _api.adminListBoqOutputUploads(boqItemId: _boqItemId);
+      final list = await _api.adminListBoqOutputUploads(scopeId: _scopeId);
       if (!mounted) return;
       setState(() {
         _images = list;
@@ -77,7 +76,7 @@ class _BoqPhotosScreenState extends ConsumerState<BoqPhotosScreen> {
   }
 
   Future<void> _pickAndUpload(ImageSource source) async {
-    if (_boqItemId.isEmpty) return;
+    if (_scopeId.isEmpty) return;
     XFile? picked;
     try {
       picked = await _picker.pickImage(source: source, maxWidth: 2048, imageQuality: 85);
@@ -96,8 +95,8 @@ class _BoqPhotosScreenState extends ConsumerState<BoqPhotosScreen> {
       final caption = _captionCtl.text.trim();
       await _api.createBoqOutputUpload(
         file: picked,
-        boqItemId: _boqItemId,
-        boqLabel: _boqLabel,
+        scopeId: _scopeId,
+        scopeName: _scopeName,
         caption: caption.isEmpty ? null : caption,
       );
       if (!mounted) return;
@@ -255,12 +254,9 @@ class _ScopeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headline = item.itemLabel.isNotEmpty
-        ? item.itemLabel
-        : (item.scopeName.isNotEmpty ? item.scopeName : item.projectName);
-    final sub = [item.scopeName, item.stageName]
-        .where((s) => s.isNotEmpty)
-        .join(' · ');
+    final headline = item.scopeName.isNotEmpty
+        ? item.scopeName
+        : (item.projectName.isNotEmpty ? item.projectName : '—');
 
     return Container(
       width: double.infinity,
@@ -273,26 +269,18 @@ class _ScopeHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              BoqKindChip(kind: item.lineKind),
-              const SizedBox(width: AppDimensions.xs),
-              Expanded(
-                child: Text(
-                  headline,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            headline,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
           ),
-          if (sub.isNotEmpty) ...[
+          if (item.projectName.isNotEmpty && item.scopeName.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              sub,
+              item.projectName,
               style: const TextStyle(
                 fontSize: 11,
                 color: AppColors.textMuted,

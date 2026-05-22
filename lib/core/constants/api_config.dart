@@ -10,8 +10,8 @@ class ApiConfig {
   ///   • Real device      → pass --dart-define with your machine's LAN IP
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://api.rp-vespera.cloud/api',
-    // defaultValue: 'http://10.105.135.201:8000/api',
+    // defaultValue: 'https://api.rp-vespera.cloud/api',
+    defaultValue: 'http://10.105.135.201:8000/api',
   );
 
   static const Duration timeout = Duration(seconds: 20);

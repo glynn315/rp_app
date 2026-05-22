@@ -16,65 +16,9 @@ class TaskState {
 }
 
 class TaskNotifier extends StateNotifier<TaskState> {
-  TaskNotifier() : super(const TaskState(tasks: [])) {
-    _loadMockData();
-  }
-
-  void _loadMockData() {
-    final now = DateTime.now();
-    state = state.copyWith(tasks: [
-      Task(
-        id: '1',
-        title: 'Prepare Monthly Report',
-        description: 'Compile and submit the monthly operations report to management.',
-        priority: TaskPriority.high,
-        status: TaskStatus.inProgress,
-        category: TaskCategory.administrative,
-        dueDate: now.add(const Duration(days: 2)),
-        createdAt: now.subtract(const Duration(days: 3)),
-      ),
-      Task(
-        id: '2',
-        title: 'Equipment Maintenance Check',
-        description: 'Perform routine maintenance checks on all floor equipment.',
-        priority: TaskPriority.medium,
-        status: TaskStatus.pending,
-        category: TaskCategory.maintenance,
-        dueDate: now.add(const Duration(days: 5)),
-        isRecurring: true,
-        recurrenceType: RecurrenceType.monthly,
-        createdAt: now.subtract(const Duration(days: 1)),
-      ),
-      Task(
-        id: '3',
-        title: 'Team Meeting — Q2 Planning',
-        description: 'Facilitate Q2 planning session with department heads.',
-        priority: TaskPriority.urgent,
-        status: TaskStatus.pending,
-        category: TaskCategory.operations,
-        dueDate: now.add(const Duration(days: 1)),
-        createdAt: now.subtract(const Duration(days: 2)),
-      ),
-      Task(
-        id: '4',
-        title: 'Update Employee Records',
-        priority: TaskPriority.low,
-        status: TaskStatus.completed,
-        category: TaskCategory.administrative,
-        createdAt: now.subtract(const Duration(days: 7)),
-      ),
-      Task(
-        id: '5',
-        title: 'Daily Stand-up Summary',
-        priority: TaskPriority.medium,
-        status: TaskStatus.pending,
-        category: TaskCategory.general,
-        isRecurring: true,
-        recurrenceType: RecurrenceType.daily,
-        createdAt: now.subtract(const Duration(days: 10)),
-      ),
-    ]);
-  }
+  // Starts with an empty task list. Real data should arrive via addTask /
+  // an API-backed load method once the tasks endpoint is wired up.
+  TaskNotifier() : super(const TaskState(tasks: []));
 
   void addTask(Task task) {
     state = state.copyWith(tasks: [task, ...state.tasks]);

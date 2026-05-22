@@ -138,8 +138,8 @@ class WorkBlock {
 
   /// Optional Log-Progress wizard fields. Set when a block is created via the
   /// guided Attendance → BoQ → Photo → AI flow; null on regular block submits.
-  final String? boqItemId;
-  final String? boqLabel;
+  final String? scopeId;
+  final String? scopeName;
   final String? aiEvaluation;
 
   /// One of 'ok' | 'retake' | 'uncertain' (or null if not evaluated).
@@ -156,8 +156,8 @@ class WorkBlock {
     this.blockId,
     this.photoPaths = const [],
     this.photoUrls = const [],
-    this.boqItemId,
-    this.boqLabel,
+    this.scopeId,
+    this.scopeName,
     this.aiEvaluation,
     this.aiVerdict,
   });
@@ -171,8 +171,8 @@ class WorkBlock {
     String? tasks,
     List<String>? photoPaths,
     List<String>? photoUrls,
-    String? boqItemId,
-    String? boqLabel,
+    String? scopeId,
+    String? scopeName,
     String? aiEvaluation,
     String? aiVerdict,
   }) {
@@ -187,8 +187,8 @@ class WorkBlock {
       tasks: tasks ?? this.tasks,
       photoPaths: photoPaths ?? this.photoPaths,
       photoUrls: photoUrls ?? this.photoUrls,
-      boqItemId: boqItemId ?? this.boqItemId,
-      boqLabel: boqLabel ?? this.boqLabel,
+      scopeId: scopeId ?? this.scopeId,
+      scopeName: scopeName ?? this.scopeName,
       aiEvaluation: aiEvaluation ?? this.aiEvaluation,
       aiVerdict: aiVerdict ?? this.aiVerdict,
     );
@@ -219,8 +219,8 @@ class WorkBlock {
       tasks: j['tasks']?.toString() ?? '',
       photoPaths: paths,
       photoUrls: urls,
-      boqItemId: str(j['boq_item_id']),
-      boqLabel: str(j['boq_label']),
+      scopeId: str(j['scope_id']),
+      scopeName: str(j['scope_name']),
       aiEvaluation: str(j['ai_evaluation']),
       aiVerdict: str(j['ai_verdict']),
     );
@@ -234,8 +234,8 @@ class WorkBlock {
         'time_out': timeOut,
         'tasks': tasks,
         'photo_paths': photoPaths,
-        if (boqItemId != null) 'boq_item_id': boqItemId,
-        if (boqLabel != null) 'boq_label': boqLabel,
+        if (scopeId != null) 'scope_id': scopeId,
+        if (scopeName != null) 'scope_name': scopeName,
         if (aiEvaluation != null) 'ai_evaluation': aiEvaluation,
         if (aiVerdict != null) 'ai_verdict': aiVerdict,
       };

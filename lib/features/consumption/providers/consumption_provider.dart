@@ -41,3 +41,12 @@ final consumptionHistoryByBomlineProvider = FutureProvider.autoDispose
   final api = ref.watch(consumptionApiProvider);
   return api.historyByBomline(bomlineId);
 });
+
+/// Aggregated consumption history across every BOM line under a project
+/// scope. Used by the BoQ Entries screen now that scope is the unit of
+/// selection (no per-line anchor).
+final consumptionHistoryByScopeProvider = FutureProvider.autoDispose
+    .family<ConsumptionHistory, int>((ref, scopeId) async {
+  final api = ref.watch(consumptionApiProvider);
+  return api.historyByScope(scopeId);
+});

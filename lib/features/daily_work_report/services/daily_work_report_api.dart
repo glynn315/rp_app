@@ -252,8 +252,8 @@ class DailyWorkReportApi {
     required String tagId,
     required String tagLabel,
     required List<String> photoPaths,
-    String? boqItemId,
-    String? boqLabel,
+    String? scopeId,
+    String? scopeName,
     String? aiEvaluation,
     String? aiVerdict,
     String? token,
@@ -270,8 +270,8 @@ class DailyWorkReportApi {
         'tag_id': tagId,
         'tag_label': tagLabel,
         'photo_paths': photoPaths,
-        'boq_item_id': ?boqItemId,
-        'boq_label': ?boqLabel,
+        'scope_id': ?scopeId,
+        'scope_name': ?scopeName,
         'ai_evaluation': ?aiEvaluation,
         'ai_verdict': ?aiVerdict,
       },
@@ -284,23 +284,21 @@ class DailyWorkReportApi {
   }
 
   /// Asks the server's GPT-4o vision evaluator whether [file] plausibly shows
-  /// progress on the chosen BoQ item. Used by the Log-Progress wizard's
+  /// progress on the chosen project scope. Used by the Log-Progress wizard's
   /// step 4 — does not persist anything; the result is attached to the
   /// in-progress work block and only stored on submit.
   Future<ProgressPhotoEvaluation> evaluateProgressPhoto({
     required XFile file,
-    required String boqLabel,
+    required String scopeId,
+    required String scopeName,
     String? projectName,
-    String? scopeName,
-    String? stageName,
-    String? boqItemId,
     String? token,
   }) async {
-    final fields = <String, String>{'boq_label': boqLabel};
+    final fields = <String, String>{
+      'scope_id': scopeId,
+      'scope_name': scopeName,
+    };
     if (projectName != null && projectName.isNotEmpty) fields['project_name'] = projectName;
-    if (scopeName != null && scopeName.isNotEmpty) fields['scope_name'] = scopeName;
-    if (stageName != null && stageName.isNotEmpty) fields['stage_name'] = stageName;
-    if (boqItemId != null && boqItemId.isNotEmpty) fields['boq_item_id'] = boqItemId;
 
     final bytes = await file.readAsBytes();
     final res = await _api.postMultipart(
@@ -316,15 +314,15 @@ class DailyWorkReportApi {
 
   // ─── BoQ expected-output reference images ───────────────────────────────
 
-  /// Active reference images for [boqItemId]. Field-side endpoint — used by
+  /// Active reference images for [scopeId]. Field-side endpoint — used by
   /// the BoQ photos screen and the Log-Progress wizard preview.
   Future<List<Map<String, dynamic>>> listBoqOutputUploads({
-    required String boqItemId,
+    required String scopeId,
     String? token,
   }) async {
     final res = await _api.get(
       '/v1/work-report/boq-output-uploads'
-      '?boq_item_id=${Uri.encodeQueryComponent(boqItemId)}',
+      '?scope_id=${Uri.encodeQueryComponent(scopeId)}',
       token: token,
     );
     return ((res['items'] as List?) ?? const [])
@@ -335,11 +333,11 @@ class DailyWorkReportApi {
 
   /// Admin listing — includes inactive rows.
   Future<List<Map<String, dynamic>>> adminListBoqOutputUploads({
-    String? boqItemId,
+    String? scopeId,
     String? token,
   }) async {
-    final qs = (boqItemId != null && boqItemId.isNotEmpty)
-        ? '?boq_item_id=${Uri.encodeQueryComponent(boqItemId)}'
+    final qs = (scopeId != null && scopeId.isNotEmpty)
+        ? '?scope_id=${Uri.encodeQueryComponent(scopeId)}'
         : '';
     final res = await _api.get(
       '/v1/work-report/admin/boq-output-uploads$qs',
@@ -351,18 +349,18 @@ class DailyWorkReportApi {
         .toList();
   }
 
-  /// Uploads a reference image for [boqItemId]. Returns the persisted row
+  /// Uploads a reference image for [scopeId]. Returns the persisted row
   /// (id, paths, urls, caption, etc.).
   Future<Map<String, dynamic>> createBoqOutputUpload({
     required XFile file,
-    required String boqItemId,
-    String? boqLabel,
+    required String scopeId,
+    String? scopeName,
     String? caption,
     String? uploadedBy,
     String? token,
   }) async {
-    final fields = <String, String>{'boq_item_id': boqItemId};
-    if (boqLabel != null && boqLabel.isNotEmpty) fields['boq_label'] = boqLabel;
+    final fields = <String, String>{'scope_id': scopeId};
+    if (scopeName != null && scopeName.isNotEmpty) fields['scope_name'] = scopeName;
     if (caption != null && caption.isNotEmpty) fields['caption'] = caption;
     if (uploadedBy != null && uploadedBy.isNotEmpty) fields['uploaded_by'] = uploadedBy;
 
@@ -392,19 +390,19 @@ class DailyWorkReportApi {
     );
   }
 
-  /// Work-block entries the given employee has logged against [boqItemId].
+  /// Work-block entries the given employee has logged against [scopeId].
   /// Newest day first. Each row is the raw JSON shape produced by the
   /// service's `listBoqEntries`, including `report_date`, `time_in`,
   /// `tasks`, `photo_urls`, `ai_verdict`, etc.
   Future<List<Map<String, dynamic>>> listBoqEntries({
     required String employeeId,
-    required String boqItemId,
+    required String scopeId,
     String? token,
   }) async {
     final res = await _api.get(
       '/v1/work-report/boq-entries'
       '?employee_id=${Uri.encodeQueryComponent(employeeId)}'
-      '&boq_item_id=${Uri.encodeQueryComponent(boqItemId)}',
+      '&scope_id=${Uri.encodeQueryComponent(scopeId)}',
       token: token,
     );
     return ((res['entries'] as List?) ?? const [])

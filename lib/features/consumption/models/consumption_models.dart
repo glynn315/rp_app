@@ -344,3 +344,284 @@ class ConsumptionSession {
     );
   }
 }
+
+/// One row of `/consumption/categories` — RP project categories used by
+/// orgs 162011, 162012, 245011. Useful for populating the projects-screen
+/// filter dropdown.
+class ConsumptionCategory {
+  final int id;
+  final String name;
+  final String? code;
+
+  const ConsumptionCategory({
+    required this.id,
+    required this.name,
+    this.code,
+  });
+
+  factory ConsumptionCategory.fromJson(Map<String, dynamic> j) =>
+      ConsumptionCategory(
+        id: _toIntOrNull(j['id']) ?? 0,
+        name: _toStr(j['category_name']),
+        code: _toStrOrNull(j['code']),
+      );
+}
+
+/// Summary row in `/consumption/sessions` (paginated list).
+class ConsumptionSessionSummary {
+  final int id;
+  final int? ioId;
+  final String? referenceNumber;
+  final int? wipProjectId;
+  final String? projectName;
+  final int? erpConsumptionId;
+  final String? erpDocumentNo;
+  final String projectType;
+  final String completionMode;
+  final String status; // 'draft' | 'posted' | 'voided'
+  final String? postedBy;
+  final DateTime? postedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final String? remarks;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final int linesCount;
+  final double totalConsumedQty;
+  final double totalOverQty;
+
+  const ConsumptionSessionSummary({
+    required this.id,
+    required this.ioId,
+    required this.referenceNumber,
+    required this.wipProjectId,
+    required this.projectName,
+    required this.erpConsumptionId,
+    required this.erpDocumentNo,
+    required this.projectType,
+    required this.completionMode,
+    required this.status,
+    required this.postedBy,
+    required this.postedAt,
+    required this.createdBy,
+    required this.updatedBy,
+    required this.remarks,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.linesCount,
+    required this.totalConsumedQty,
+    required this.totalOverQty,
+  });
+
+  bool get isPosted => status == 'posted';
+
+  factory ConsumptionSessionSummary.fromJson(Map<String, dynamic> j) =>
+      ConsumptionSessionSummary(
+        id: _toIntOrNull(j['id']) ?? 0,
+        ioId: _toIntOrNull(j['io_id']),
+        referenceNumber: _toStrOrNull(j['reference_number']),
+        wipProjectId: _toIntOrNull(j['wip_i_project_id']),
+        projectName: _toStrOrNull(j['project_name']),
+        erpConsumptionId: _toIntOrNull(j['erp_consumption_id']),
+        erpDocumentNo: _toStrOrNull(j['erp_document_no']),
+        projectType: _toStrOrNull(j['project_type']) ?? 'project',
+        completionMode: _toStrOrNull(j['completion_mode']) ?? 'per_item',
+        status: _toStrOrNull(j['status']) ?? 'draft',
+        postedBy: _toStrOrNull(j['posted_by']),
+        postedAt: _parseDate(j['posted_at']),
+        createdBy: _toStrOrNull(j['created_by']),
+        updatedBy: _toStrOrNull(j['updated_by']),
+        remarks: _toStrOrNull(j['remarks']),
+        createdAt: _parseDate(j['created_at']),
+        updatedAt: _parseDate(j['updated_at']),
+        linesCount: _toIntOrNull(j['lines_count']) ?? 0,
+        totalConsumedQty: _toDouble(j['total_consumed_qty']),
+        totalOverQty: _toDouble(j['total_over_qty']),
+      );
+}
+
+/// Pagination envelope returned by `/consumption/sessions`.
+class ConsumptionSessionsPage {
+  final List<ConsumptionSessionSummary> items;
+  final int page;
+  final int perPage;
+  final int total;
+  final int lastPage;
+
+  const ConsumptionSessionsPage({
+    required this.items,
+    required this.page,
+    required this.perPage,
+    required this.total,
+    required this.lastPage,
+  });
+
+  bool get hasMore => page < lastPage;
+}
+
+/// One line in an ERP-verify comparison. `local` and `erp` are independently
+/// nullable so missing-on-either-side rows can be rendered uniformly.
+class ErpVerifyLocalSide {
+  final int id;
+  final double consumedQty;
+  final double overQty;
+
+  const ErpVerifyLocalSide({
+    required this.id,
+    required this.consumedQty,
+    required this.overQty,
+  });
+
+  factory ErpVerifyLocalSide.fromJson(Map<String, dynamic> j) =>
+      ErpVerifyLocalSide(
+        id: _toIntOrNull(j['id']) ?? 0,
+        consumedQty: _toDouble(j['consumed_qty']),
+        overQty: _toDouble(j['over_qty']),
+      );
+}
+
+class ErpVerifyErpSide {
+  final int id;
+  final double qty;
+  final double cost;
+  final double amtTotal;
+  final double qtyLocator;
+
+  const ErpVerifyErpSide({
+    required this.id,
+    required this.qty,
+    required this.cost,
+    required this.amtTotal,
+    required this.qtyLocator,
+  });
+
+  factory ErpVerifyErpSide.fromJson(Map<String, dynamic> j) => ErpVerifyErpSide(
+        id: _toIntOrNull(j['id']) ?? 0,
+        qty: _toDouble(j['qty']),
+        cost: _toDouble(j['cost']),
+        amtTotal: _toDouble(j['amt_total']),
+        qtyLocator: _toDouble(j['qty_locator']),
+      );
+}
+
+class ErpVerifyLine {
+  final int? skuId;
+  final String? itemDescription;
+  final String? unit;
+  final ErpVerifyLocalSide? local;
+  final ErpVerifyErpSide? erp;
+
+  /// One of: 'matched' | 'qty_mismatch' | 'missing_on_erp' | 'missing_locally' | 'not_posted'.
+  final String matchStatus;
+
+  const ErpVerifyLine({
+    required this.skuId,
+    required this.itemDescription,
+    required this.unit,
+    required this.local,
+    required this.erp,
+    required this.matchStatus,
+  });
+
+  factory ErpVerifyLine.fromJson(Map<String, dynamic> j) {
+    final localRaw = j['local'];
+    final erpRaw = j['erp'];
+    return ErpVerifyLine(
+      skuId: _toIntOrNull(j['sku_id']),
+      itemDescription: _toStrOrNull(j['item_description']),
+      unit: _toStrOrNull(j['unit']),
+      local: localRaw is Map
+          ? ErpVerifyLocalSide.fromJson(Map<String, dynamic>.from(localRaw))
+          : null,
+      erp: erpRaw is Map
+          ? ErpVerifyErpSide.fromJson(Map<String, dynamic>.from(erpRaw))
+          : null,
+      matchStatus: _toStrOrNull(j['match_status']) ?? 'not_posted',
+    );
+  }
+}
+
+class ErpVerifySummary {
+  final int matched;
+  final int qtyMismatch;
+  final int missingOnErp;
+  final int missingLocally;
+  final int notPosted;
+
+  const ErpVerifySummary({
+    required this.matched,
+    required this.qtyMismatch,
+    required this.missingOnErp,
+    required this.missingLocally,
+    required this.notPosted,
+  });
+
+  factory ErpVerifySummary.fromJson(Map<String, dynamic> j) => ErpVerifySummary(
+        matched: _toIntOrNull(j['matched']) ?? 0,
+        qtyMismatch: _toIntOrNull(j['qty_mismatch']) ?? 0,
+        missingOnErp: _toIntOrNull(j['missing_on_erp']) ?? 0,
+        missingLocally: _toIntOrNull(j['missing_locally']) ?? 0,
+        notPosted: _toIntOrNull(j['not_posted']) ?? 0,
+      );
+
+  bool get hasIssues =>
+      qtyMismatch > 0 || missingOnErp > 0 || missingLocally > 0;
+}
+
+class ErpVerifyResult {
+  final int sessionId;
+  final String sessionStatus;
+  final int? wipProjectId;
+  final int? erpConsumptionId;
+  final String? erpDocumentNo;
+  final String? postedBy;
+  final DateTime? postedAt;
+  final Map<String, dynamic>? erpDoc;
+  final List<ErpVerifyLine> lines;
+  final ErpVerifySummary summary;
+
+  const ErpVerifyResult({
+    required this.sessionId,
+    required this.sessionStatus,
+    required this.wipProjectId,
+    required this.erpConsumptionId,
+    required this.erpDocumentNo,
+    required this.postedBy,
+    required this.postedAt,
+    required this.erpDoc,
+    required this.lines,
+    required this.summary,
+  });
+
+  factory ErpVerifyResult.fromJson(Map<String, dynamic> j) {
+    final session = (j['session'] as Map?) ?? const {};
+    final rawErp = j['erp_doc'];
+    final rawLines = (j['lines'] as List?) ?? const [];
+    return ErpVerifyResult(
+      sessionId: _toIntOrNull(session['id']) ?? 0,
+      sessionStatus: _toStrOrNull(session['status']) ?? 'draft',
+      wipProjectId: _toIntOrNull(session['wip_i_project_id']),
+      erpConsumptionId: _toIntOrNull(session['erp_consumption_id']),
+      erpDocumentNo: _toStrOrNull(session['erp_document_no']),
+      postedBy: _toStrOrNull(session['posted_by']),
+      postedAt: _parseDate(session['posted_at']),
+      erpDoc:
+          rawErp is Map ? Map<String, dynamic>.from(rawErp) : null,
+      lines: rawLines
+          .whereType<Map>()
+          .map((e) => ErpVerifyLine.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+      summary: j['summary'] is Map
+          ? ErpVerifySummary.fromJson(
+              Map<String, dynamic>.from(j['summary'] as Map),
+            )
+          : const ErpVerifySummary(
+              matched: 0,
+              qtyMismatch: 0,
+              missingOnErp: 0,
+              missingLocally: 0,
+              notPosted: 0,
+            ),
+    );
+  }
+}

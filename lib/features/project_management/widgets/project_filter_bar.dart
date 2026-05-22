@@ -10,13 +10,12 @@ import '../models/project_management_models.dart';
 import '../providers/project_management_provider.dart';
 
 /// Per-screen filter controls. Each screen declares which controls apply
-/// (BOQ has [kindOptions] and no date range; WIP has a status pill and a
-/// date range; LMC has a docstatus pill and a date range).
+/// (BOQ has no date range; WIP has a status pill and a date range; LMC has
+/// a docstatus pill and a date range).
 class ProjectFilterBar extends ConsumerWidget {
   final StateNotifierProvider<ProjectListFilterController,
       ProjectListFilter> filterProvider;
   final List<FilterOption>? statusOptions;
-  final List<FilterOption>? kindOptions;
   final bool showDateRange;
   final bool showProjectPicker;
   final String searchHint;
@@ -25,19 +24,10 @@ class ProjectFilterBar extends ConsumerWidget {
     super.key,
     required this.filterProvider,
     this.statusOptions,
-    this.kindOptions,
     this.showDateRange = true,
     this.showProjectPicker = true,
     this.searchHint = 'Search…',
   });
-
-  /// Convenience builders so screens read clearly at the call site.
-  static const boqKindOptions = <FilterOption>[
-    FilterOption('BOM', 'BOM'),
-    FilterOption('LABOR', 'Labor'),
-    FilterOption('MISC', 'Misc'),
-    FilterOption('LMC', 'LMC'),
-  ];
 
   static const boqStatusOptions = <FilterOption>[
     FilterOption('BUDGETING', 'Budgeting'),
@@ -98,7 +88,6 @@ class ProjectFilterBar extends ConsumerWidget {
             _ActiveChips(
               filter: filter,
               statusOptions: statusOptions,
-              kindOptions: kindOptions,
               notifier: notifier,
               ref: ref,
             ),
@@ -113,7 +102,6 @@ class ProjectFilterBar extends ConsumerWidget {
     if (includeSearch && f.search.isNotEmpty) n++;
     if (f.projectId != null) n++;
     if ((f.status ?? '').isNotEmpty) n++;
-    if ((f.lineKind ?? '').isNotEmpty) n++;
     if (f.dateFrom != null) n++;
     if (f.dateTo != null) n++;
     return n;
@@ -133,7 +121,6 @@ class ProjectFilterBar extends ConsumerWidget {
         return _FilterSheet(
           filterProvider: filterProvider,
           statusOptions: statusOptions,
-          kindOptions: kindOptions,
           showDateRange: showDateRange,
           showProjectPicker: showProjectPicker,
         );
@@ -293,14 +280,12 @@ class _FiltersButton extends StatelessWidget {
 class _ActiveChips extends StatelessWidget {
   final ProjectListFilter filter;
   final List<FilterOption>? statusOptions;
-  final List<FilterOption>? kindOptions;
   final ProjectListFilterController notifier;
   final WidgetRef ref;
 
   const _ActiveChips({
     required this.filter,
     required this.statusOptions,
-    required this.kindOptions,
     required this.notifier,
     required this.ref,
   });
@@ -338,14 +323,6 @@ class _ActiveChips extends StatelessWidget {
         orElse: () => FilterOption(filter.status!, filter.status!),
       );
       chips.add(_chip(label: m.label, onClear: () => n.setStatus(null)));
-    }
-    if ((filter.lineKind ?? '').isNotEmpty) {
-      final opts = kindOptions ?? const <FilterOption>[];
-      final m = opts.firstWhere(
-        (o) => o.value == filter.lineKind,
-        orElse: () => FilterOption(filter.lineKind!, filter.lineKind!),
-      );
-      chips.add(_chip(label: m.label, onClear: () => n.setLineKind(null)));
     }
     if (filter.dateFrom != null) {
       chips.add(_chip(
@@ -415,14 +392,12 @@ class _FilterSheet extends ConsumerStatefulWidget {
   final StateNotifierProvider<ProjectListFilterController,
       ProjectListFilter> filterProvider;
   final List<FilterOption>? statusOptions;
-  final List<FilterOption>? kindOptions;
   final bool showDateRange;
   final bool showProjectPicker;
 
   const _FilterSheet({
     required this.filterProvider,
     required this.statusOptions,
-    required this.kindOptions,
     required this.showDateRange,
     required this.showProjectPicker,
   });
@@ -485,17 +460,6 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                   ),
                 ),
               ],
-              if (widget.kindOptions != null) ...[
-                const SizedBox(height: AppDimensions.md),
-                _SectionLabel('Type'),
-                _ChipGroup(
-                  options: widget.kindOptions!,
-                  selected: _draft.lineKind,
-                  onChanged: (v) => setState(
-                    () => _draft = _draft.copyWith(lineKind: v),
-                  ),
-                ),
-              ],
               if (widget.statusOptions != null) ...[
                 const SizedBox(height: AppDimensions.md),
                 _SectionLabel('Status'),
@@ -554,7 +518,6 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                         // the controller stays the single source of truth.
                         n.setProjectId(_draft.projectId);
                         n.setStatus(_draft.status);
-                        n.setLineKind(_draft.lineKind);
                         n.setDateFrom(_draft.dateFrom);
                         n.setDateTo(_draft.dateTo);
                         Navigator.of(context).pop();
