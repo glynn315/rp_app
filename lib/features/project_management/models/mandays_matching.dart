@@ -64,6 +64,42 @@ class MandaysMatchingRun {
       );
 }
 
+/// Result of POST `/v1/projects/mandays-matching/auto-run`. `runId` is the
+/// UUID written across every row of `wbs_i_mandays_auto_match_decisions`
+/// for this invocation — surfaced so the operator can later query the audit
+/// table by run.
+class MandaysAutoRunResult {
+  final String runId;
+  final bool dryRun;
+  final int count;
+  final int applyCount;
+  final int deferCount;
+  final int errorCount;
+
+  const MandaysAutoRunResult({
+    required this.runId,
+    required this.dryRun,
+    required this.count,
+    required this.applyCount,
+    required this.deferCount,
+    required this.errorCount,
+  });
+
+  factory MandaysAutoRunResult.fromJson(Map<String, dynamic> j) {
+    final summary = j['summary'];
+    final s = summary is Map ? Map<String, dynamic>.from(summary) : const {};
+    final dr = j['dry_run'];
+    return MandaysAutoRunResult(
+      runId: _toStr(j['run_id']),
+      dryRun: dr == true || dr == 1 || dr == '1',
+      count: _toIntOrNull(j['count']) ?? 0,
+      applyCount: _toIntOrNull(s['APPLY']) ?? 0,
+      deferCount: _toIntOrNull(s['DEFER']) ?? 0,
+      errorCount: _toIntOrNull(s['ERROR']) ?? 0,
+    );
+  }
+}
+
 /// Per-employee TA summary inside a Mandays-Matching run.
 class MandaysMatchingEmployeeSummary {
   final int? summaryId;

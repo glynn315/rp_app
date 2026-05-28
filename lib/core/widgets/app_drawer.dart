@@ -52,7 +52,7 @@ class AppDrawer extends ConsumerWidget {
                     initiallyExpanded:
                         currentLocation.startsWith('/projects/') ||
                             currentLocation.startsWith('/consumption'),
-                    children: [
+                    children: <Widget>[
                       _DrawerTile(
                         icon: Icons.receipt_long_outlined,
                         selectedIcon: Icons.receipt_long,
@@ -126,6 +126,30 @@ class AppDrawer extends ConsumerWidget {
                         },
                       ),
                       _DrawerTile(
+                        icon: Icons.bolt_outlined,
+                        selectedIcon: Icons.bolt,
+                        label: 'Auto-match',
+                        selected: currentLocation
+                            .startsWith('/projects/mandays-matching/auto'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/projects/mandays-matching/auto');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.history_edu_outlined,
+                        selectedIcon: Icons.history_edu,
+                        label: 'Runs (PR)',
+                        selected: currentLocation
+                            .startsWith('/projects/mandays-matching/runs'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/projects/mandays-matching/runs');
+                        },
+                      ),
+                      _DrawerTile(
                         icon: Icons.inventory_2_outlined,
                         selectedIcon: Icons.inventory_2,
                         label: 'Consumption',
@@ -139,7 +163,126 @@ class AppDrawer extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  // ─── Time & attendance ─────────────────────────────
+                  // Mirrors the web mobile "Time & attendance" group:
+                  // Taps sync · Mandays match · Hangs.
+                  _DrawerAccordion(
+                    title: 'Time & attendance',
+                    icon: Icons.schedule_outlined,
+                    selectedIcon: Icons.schedule,
+                    initiallyExpanded:
+                        currentLocation.startsWith('/hr/') ||
+                            currentLocation
+                                .startsWith('/projects/mandays-matching/pending'),
+                    children: <Widget>[
+                      _DrawerTile(
+                        icon: Icons.sync_outlined,
+                        selectedIcon: Icons.sync,
+                        label: 'Taps sync',
+                        selected:
+                            currentLocation.startsWith('/hr/taps-sync'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/hr/taps-sync');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.assignment_turned_in_outlined,
+                        selectedIcon: Icons.assignment_turned_in,
+                        label: 'Mandays match',
+                        selected: currentLocation
+                            .startsWith('/projects/mandays-matching/pending'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/projects/mandays-matching/pending');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.hourglass_empty,
+                        selectedIcon: Icons.hourglass_bottom,
+                        label: 'Hangs',
+                        selected: currentLocation.startsWith('/hr/hangs'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/hr/hangs');
+                        },
+                      ),
+                    ],
+                  ),
+                  // ─── IPR-BOQ (Procurement) ─────────────────────────
+                  // Mirrors the web mobile "IPR-BOQ" group with three
+                  // nested entries: Requisitions / Generate / Monitoring.
+                  _DrawerAccordion(
+                    title: 'IPR-BOQ',
+                    icon: Icons.inventory_outlined,
+                    selectedIcon: Icons.inventory,
+                    initiallyExpanded: currentLocation.startsWith('/ipr'),
+                    children: <Widget>[
+                      _DrawerTile(
+                        icon: Icons.request_quote_outlined,
+                        selectedIcon: Icons.request_quote,
+                        label: 'Requisitions',
+                        selected: currentLocation == '/ipr' ||
+                            (currentLocation.startsWith('/ipr/') &&
+                                !currentLocation.startsWith('/ipr/generate') &&
+                                !currentLocation
+                                    .startsWith('/ipr/monitoring')),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/ipr');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.note_add_outlined,
+                        selectedIcon: Icons.note_add,
+                        label: 'Generate IPR',
+                        selected:
+                            currentLocation.startsWith('/ipr/generate'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/ipr/generate');
+                        },
+                      ),
+                      _DrawerTile(
+                        icon: Icons.monitor_heart_outlined,
+                        selectedIcon: Icons.monitor_heart,
+                        label: 'Monitoring',
+                        selected:
+                            currentLocation.startsWith('/ipr/monitoring'),
+                        nested: true,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.go('/ipr/monitoring');
+                        },
+                      ),
+                    ],
+                  ),
                   const Divider(height: AppDimensions.lg, color: AppColors.border),
+                  _DrawerTile(
+                    icon: Icons.work_outline,
+                    selectedIcon: Icons.work,
+                    label: 'Work',
+                    selected: currentLocation == '/work',
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      context.go('/work');
+                    },
+                  ),
+                  _DrawerTile(
+                    icon: Icons.cloud_outlined,
+                    selectedIcon: Icons.cloud,
+                    label: 'Weather',
+                    selected: currentLocation == '/weather',
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      context.go('/weather');
+                    },
+                  ),
                   _DrawerTile(
                     icon: Icons.person_outline,
                     selectedIcon: Icons.person,

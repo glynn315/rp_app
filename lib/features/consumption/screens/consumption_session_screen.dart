@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/consumption_models.dart';
 import '../providers/consumption_provider.dart';
@@ -210,7 +211,10 @@ class _ConsumptionSessionScreenState
           ? ref.watch(consumptionSessionProvider(widget.sessionId!))
           : ref.watch(consumptionBomProvider(widget.projectId!));
       return Scaffold(
-        appBar: AppBar(title: const Text('Consumption')),
+        appBar: AppBar(
+          leading: const AppBackButton(),
+          title: const Text('Consumption'),
+        ),
         body: async.when(
           data: (data) {
             // Hydrate on next frame so setState happens outside build.
@@ -244,6 +248,7 @@ class _ConsumptionSessionScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(_projectName.isEmpty ? 'Consumption' : _projectName),
         actions: [
           Padding(
@@ -440,7 +445,18 @@ class _LineCardState extends State<_LineCard> {
     return v.toString();
   }
 
-  double _parse(String s) => double.tryParse(s.trim()) ?? 0;
+  // Budget remaining for this BOM line = budget minus what prior posted
+  // sessions already consumed. Loc qty can't be staged beyond it, and
+  // Consumed can't exceed the lesser of loc qty and what's left.
+  double get _budgetRemaining {
+    final r = widget.line.bgtQty - widget.line.consumedSoFar;
+    return r > 0 ? r : 0;
+  }
+
+  double get _locMax => _budgetRemaining;
+  double get _consumedMax =>
+      widget.line.locQty < _budgetRemaining ? widget.line.locQty : _budgetRemaining;
+  bool get _hasRemaining => _budgetRemaining > 0;
 
   void _emit({
     double? loc,
@@ -457,6 +473,11 @@ class _LineCardState extends State<_LineCard> {
       isDone: done,
     ));
   }
+
+  // Clamp-on-emit so typed values and +/- taps both respect the caps.
+  void _onLoc(double v) => _emit(loc: v.clamp(0, _locMax).toDouble());
+  void _onConsumed(double v) => _emit(consumed: v.clamp(0, _consumedMax).toDouble());
+  void _onOver(double v) => _emit(over: v < 0 ? 0 : v);
 
   @override
   Widget build(BuildContext context) {
@@ -504,38 +525,64 @@ class _LineCardState extends State<_LineCard> {
               ),
             ),
           ],
+          if (!_hasRemaining) ...[
+            const SizedBox(height: AppDimensions.sm),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.warningLight,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              ),
+              child: const Text(
+                'No remaining budget — switch to Over budget and use Over qty if needed.',
+                style: TextStyle(fontSize: 11, color: AppColors.warning),
+              ),
+            ),
+          ],
           const SizedBox(height: AppDimensions.sm),
           Row(
             children: [
               Expanded(
-                child: _QtyField(
-                  label: 'Loc qty',
+                child: _QtyStepper(
+                  label: 'Loc qty (≤ ${_fmt(_locMax)})',
                   controller: _loc,
-                  enabled: !widget.readOnly,
-                  onChanged: (v) => _emit(loc: _parse(v)),
+                  enabled: !widget.readOnly && _hasRemaining,
+                  max: _locMax,
+                  onChanged: _onLoc,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _QtyField(
-                  label: 'Consumed',
+                child: _QtyStepper(
+                  label: 'Consumed (≤ ${_fmt(_consumedMax)})',
                   controller: _consumed,
-                  enabled: !widget.readOnly,
-                  onChanged: (v) => _emit(consumed: _parse(v)),
+                  enabled: !widget.readOnly && _hasRemaining,
+                  max: _consumedMax,
+                  onChanged: _onConsumed,
                 ),
               ),
-              if (isOver) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _QtyField(
-                    label: 'Over',
-                    controller: _over,
-                    enabled: !widget.readOnly,
-                    onChanged: (v) => _emit(over: _parse(v)),
-                  ),
-                ),
-              ],
             ],
+          ),
+          if (isOver) ...[
+            const SizedBox(height: AppDimensions.sm),
+            _QtyStepper(
+              label: 'Over qty',
+              controller: _over,
+              enabled: !widget.readOnly,
+              max: null,
+              onChanged: _onOver,
+            ),
+          ],
+          const SizedBox(height: 6),
+          Text(
+            'Budget remaining: ${_fmt(_budgetRemaining)} ${line.unit ?? ''} · '
+            'Consumed so far: ${_fmt(line.consumedSoFar)}',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: _hasRemaining ? AppColors.success : AppColors.error,
+            ),
           ),
           const SizedBox(height: AppDimensions.sm),
           Row(
@@ -568,37 +615,106 @@ class _LineCardState extends State<_LineCard> {
   }
 }
 
-class _QtyField extends StatelessWidget {
+/// Quantity field with − / + steppers. Buttons step by 1 and clamp to
+/// [0, max]; typed values are emitted raw and clamped by the parent. The
+/// emitted value flows back through the parent's line state, which re-syncs
+/// the controller text.
+class _QtyStepper extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final bool enabled;
-  final ValueChanged<String> onChanged;
+  final double? max;
+  final ValueChanged<double> onChanged;
 
-  const _QtyField({
+  const _QtyStepper({
     required this.label,
     required this.controller,
     required this.enabled,
+    required this.max,
     required this.onChanged,
+  });
+
+  double _clamp(double v) {
+    var n = v;
+    if (max != null && n > max!) n = max!;
+    if (n < 0) n = 0;
+    return n;
+  }
+
+  void _bump(double delta) {
+    final cur = double.tryParse(controller.text.trim()) ?? 0;
+    onChanged(_clamp(cur + delta));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _StepBtn(
+              icon: Icons.remove,
+              enabled: enabled,
+              onTap: () => _bump(-1),
+            ),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                enabled: enabled,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                ],
+                textAlign: TextAlign.center,
+                onChanged: (v) => onChanged(double.tryParse(v.trim()) ?? 0),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                  ),
+                ),
+              ),
+            ),
+            _StepBtn(
+              icon: Icons.add,
+              enabled: enabled,
+              onTap: () => _bump(1),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StepBtn extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _StepBtn({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      enabled: enabled,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-      ],
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-        ),
+    return SizedBox(
+      width: 34,
+      height: 40,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        iconSize: 18,
+        onPressed: enabled ? onTap : null,
+        icon: Icon(icon),
       ),
     );
   }

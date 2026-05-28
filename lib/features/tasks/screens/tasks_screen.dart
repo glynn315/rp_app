@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../home/home_screen.dart';
 import '../models/task_model.dart';
 import '../providers/task_provider.dart';
+import '../services/task_notify_service.dart';
 import '../widgets/task_card.dart';
 
 class TasksScreen extends ConsumerStatefulWidget {
@@ -18,6 +20,7 @@ class TasksScreen extends ConsumerStatefulWidget {
 class _TasksScreenState extends ConsumerState<TasksScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _syncing = false;
 
   static const _tabs = ['All', 'Pending', 'In Progress', 'Done', 'Recurring'];
 
@@ -25,6 +28,30 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+  }
+
+  /// Render the pending-task report as an image and post it to Discord.
+  Future<void> _syncToDiscord() async {
+    if (_syncing) return;
+    final auth = ref.read(authProvider);
+    final tasks = ref.read(taskProvider).tasks;
+    setState(() => _syncing = true);
+    final ok = await TaskNotifyService().syncReport(
+      ownerId: auth.user?.employeeId ?? auth.user?.name ?? '',
+      ownerName: auth.user?.name ?? 'Unknown',
+      tasks: tasks,
+      token: auth.token,
+    );
+    if (!mounted) return;
+    setState(() => _syncing = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok
+            ? 'Task report posted to Discord.'
+            : 'Could not post the report to Discord.'),
+        backgroundColor: ok ? AppColors.success : AppColors.error,
+      ),
+    );
   }
 
   @override
@@ -47,6 +74,24 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
           onPressed: HomeScreen.openDrawer,
         ),
         title: const Text('Tasks'),
+        actions: [
+          IconButton(
+            tooltip: 'Log daily update',
+            onPressed: () => context.push('/tasks/daily'),
+            icon: const Icon(Icons.edit_note),
+          ),
+          IconButton(
+            tooltip: 'Post report to Discord',
+            onPressed: _syncing ? null : _syncToDiscord,
+            icon: _syncing
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.ios_share),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(44),
           child: Container(
@@ -76,27 +121,58 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _TaskList(tasks: taskState.tasks, notifier: notifier),
+          // All tab: completed/cancelled sink to the bottom, each group
+          // sorted by createdAt desc (latest activity first). Mirrors the
+          // web TasksScreen ordering.
+          _TaskList(tasks: _sortedAll(taskState.tasks), notifier: notifier),
           _TaskList(
-            tasks: taskState.tasks.where((t) => t.status == TaskStatus.pending).toList(),
+            tasks: _sortedByDateDesc(
+                taskState.tasks.where((t) => t.status == TaskStatus.pending)),
             notifier: notifier,
           ),
           _TaskList(
-            tasks: taskState.tasks.where((t) => t.status == TaskStatus.inProgress).toList(),
+            tasks: _sortedByDateDesc(taskState.tasks
+                .where((t) => t.status == TaskStatus.inProgress)),
             notifier: notifier,
           ),
           _TaskList(
-            tasks: taskState.tasks.where((t) => t.status == TaskStatus.completed).toList(),
+            tasks: _sortedByDateDesc(taskState.tasks
+                .where((t) => t.status == TaskStatus.completed)),
             notifier: notifier,
           ),
           _TaskList(
-            tasks: taskState.tasks.where((t) => t.isRecurring).toList(),
+            tasks: _sortedByDateDesc(
+                taskState.tasks.where((t) => t.isRecurring)),
             notifier: notifier,
           ),
         ],
       ),
     );
   }
+}
+
+/// Newest-first by createdAt. When the model picks up `dailyUpdates`, swap
+/// this to fall back to the latest update's timestamp.
+List<Task> _sortedByDateDesc(Iterable<Task> tasks) {
+  final out = tasks.toList();
+  out.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  return out;
+}
+
+/// All-tab order: active first (pending / in-progress), then
+/// completed/cancelled below. Within each group, newest activity first.
+List<Task> _sortedAll(Iterable<Task> tasks) {
+  int rank(Task t) =>
+      t.status == TaskStatus.completed || t.status == TaskStatus.cancelled
+          ? 1
+          : 0;
+  final out = tasks.toList();
+  out.sort((a, b) {
+    final r = rank(a) - rank(b);
+    if (r != 0) return r;
+    return b.createdAt.compareTo(a.createdAt);
+  });
+  return out;
 }
 
 class _TaskList extends StatelessWidget {
@@ -143,6 +219,7 @@ class _TaskList extends StatelessWidget {
         final task = tasks[index];
         return TaskCard(
           task: task,
+          onTap: () => context.push('/tasks/${task.id}'),
           onStatusChanged: () => _showStatusSheet(context, task),
           onDelete: () => _confirmDelete(context, task.id),
         );

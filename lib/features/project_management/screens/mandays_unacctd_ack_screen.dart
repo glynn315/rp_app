@@ -8,6 +8,7 @@ import 'package:signature/signature.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/project_management_models.dart';
 import '../providers/project_management_provider.dart';
@@ -128,6 +129,7 @@ class _MandaysUnacctdAckScreenState
     final ymd = DateFormat('yyyy-MM-dd');
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: const Text('Acknowledge Unaccounted Salary'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.pureWhite,

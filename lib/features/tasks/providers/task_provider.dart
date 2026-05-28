@@ -44,6 +44,22 @@ class TaskNotifier extends StateNotifier<TaskState> {
     );
   }
 
+  /// Appends a daily progress entry to a task. When `markDone` is set, the
+  /// task's status flips to `completed` so the All-tab sort sinks it.
+  void addDailyUpdate(String taskId, TaskDailyUpdate update,
+      {bool markDone = false}) {
+    state = state.copyWith(
+      tasks: state.tasks.map((t) {
+        if (t.id != taskId) return t;
+        final updated = [...t.dailyUpdates, update];
+        return t.copyWith(
+          dailyUpdates: updated,
+          status: markDone ? TaskStatus.completed : t.status,
+        );
+      }).toList(),
+    );
+  }
+
   List<Task> getByStatus(TaskStatus status) =>
       state.tasks.where((t) => t.status == status).toList();
 

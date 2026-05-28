@@ -9,6 +9,8 @@ import '../../features/home/home_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/tasks/screens/tasks_screen.dart';
 import '../../features/tasks/screens/add_task_screen.dart';
+import '../../features/tasks/screens/daily_update_screen.dart';
+import '../../features/tasks/screens/task_detail_screen.dart';
 import '../../features/requests/screens/requests_screen.dart';
 import '../../features/requests/screens/leave_request_screen.dart';
 import '../../features/requests/screens/ot_request_screen.dart';
@@ -26,13 +28,25 @@ import '../../features/project_management/screens/boq_log_time_screen.dart';
 import '../../features/project_management/screens/boq_photos_screen.dart';
 import '../../features/project_management/screens/boq_tasks_screen.dart';
 import '../../features/project_management/screens/lmc_payout_screen.dart';
+import '../../features/project_management/screens/mandays_auto_run_screen.dart';
 import '../../features/project_management/screens/mandays_matching_screen.dart';
 import '../../features/project_management/screens/mandays_pending_screen.dart';
 import '../../features/project_management/screens/mandays_reports_screen.dart';
+import '../../features/project_management/screens/mandays_runs_screen.dart';
 import '../../features/project_management/screens/mandays_unacctd_ack_screen.dart';
 import '../../features/project_management/screens/work_in_progress_screen.dart';
+import '../../features/consumption/screens/consumption_erp_verify_screen.dart';
 import '../../features/consumption/screens/consumption_projects_screen.dart';
 import '../../features/consumption/screens/consumption_session_screen.dart';
+import '../../features/consumption/screens/consumption_sessions_screen.dart';
+import '../../features/weather/screens/weather_screen.dart';
+import '../../features/work/screens/work_hub_screen.dart';
+import '../../features/hr/screens/hangs_screen.dart';
+import '../../features/hr/screens/taps_sync_screen.dart';
+import '../../features/ipr/screens/ipr_list_screen.dart';
+import '../../features/ipr/screens/ipr_detail_screen.dart';
+import '../../features/ipr/screens/ipr_generate_screen.dart';
+import '../../features/ipr/screens/ipr_monitoring_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -108,6 +122,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final taskId = state.extra as String?;
           return AddTaskScreen(editTaskId: taskId);
+        },
+      ),
+      // Daily update form — `?task=<id>` preselects a task. Declared before
+      // `/tasks/:id` so go_router prefers the literal "daily" segment.
+      GoRoute(
+        path: '/tasks/daily',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final taskId = state.uri.queryParameters['task'];
+          return DailyUpdateScreen(initialTaskId: taskId);
+        },
+      ),
+      GoRoute(
+        path: '/tasks/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return TaskDetailScreen(taskId: id);
         },
       ),
       GoRoute(
@@ -188,6 +220,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const MandaysReportsScreen(),
       ),
       GoRoute(
+        path: '/projects/mandays-matching/auto',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MandaysAutoRunScreen(),
+      ),
+      GoRoute(
+        path: '/projects/mandays-matching/runs',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MandaysRunsScreen(),
+      ),
+      GoRoute(
         // Signature-capture for an unaccounted-salary acknowledgement.
         // The line/employee/amount/name come through `state.extra` as a
         // Map<String, dynamic> so the caller doesn't have to URL-encode them.
@@ -225,6 +267,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        // Static `/consumption/sessions` must be declared BEFORE
+        // `/consumption/sessions/:id` so go_router prefers the literal match.
+        path: '/consumption/sessions',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ConsumptionSessionsScreen(),
+      ),
+      GoRoute(
         path: '/consumption/sessions/:id',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
@@ -238,9 +287,73 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/consumption/sessions/:id/erp-verify',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid session id')),
+            );
+          }
+          return ConsumptionErpVerifyScreen(sessionId: id);
+        },
+      ),
+      GoRoute(
         path: '/log-progress',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const LogProgressWizardScreen(),
+      ),
+      GoRoute(
+        path: '/weather',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WeatherScreen(),
+      ),
+      // HR — Time & attendance group.
+      GoRoute(
+        path: '/hr/taps-sync',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TapsSyncScreen(),
+      ),
+      GoRoute(
+        path: '/hr/hangs',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const HangsScreen(),
+      ),
+      GoRoute(
+        path: '/work',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WorkHubScreen(),
+      ),
+      // IPR — static paths declared before the :id param route so go_router
+      // matches /ipr/generate and /ipr/monitoring before /ipr/:id.
+      GoRoute(
+        path: '/ipr',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const IprListScreen(),
+      ),
+      GoRoute(
+        path: '/ipr/generate',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const IprGenerateScreen(),
+      ),
+      GoRoute(
+        path: '/ipr/monitoring',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const IprMonitoringScreen(),
+      ),
+      GoRoute(
+        path: '/ipr/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid IPR id')),
+            );
+          }
+          return IprDetailScreen(iprId: id);
+        },
       ),
       GoRoute(
         path: '/work-report',

@@ -324,6 +324,24 @@ class _QuickActions extends StatelessWidget {
             onTap: () => context.push('/requests/timelog'),
           ),
         ),
+        const SizedBox(width: AppDimensions.sm),
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.work_outline,
+            label: 'Work',
+            color: AppColors.primary,
+            onTap: () => context.push('/work'),
+          ),
+        ),
+        const SizedBox(width: AppDimensions.sm),
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.cloud_outlined,
+            label: 'Weather',
+            color: AppColors.secondary,
+            onTap: () => context.push('/weather'),
+          ),
+        ),
       ],
     );
   }

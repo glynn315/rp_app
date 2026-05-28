@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../models/project_management_models.dart';
 import '../providers/project_management_provider.dart';
 import '../widgets/project_list_shell.dart';
@@ -288,6 +289,7 @@ class MandaysMatchingDetailScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(run.documentNo.isEmpty ? 'Run #$runId' : run.documentNo),
       ),
       body: RefreshIndicator(

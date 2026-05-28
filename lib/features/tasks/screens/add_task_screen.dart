@@ -56,7 +56,7 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  void _submit({bool addAnother = false}) {
     if (!_formKey.currentState!.validate()) return;
 
     final notifier = ref.read(taskProvider.notifier);
@@ -87,7 +87,35 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
       ));
     }
 
-    context.pop();
+    // "Save & add another" stays on the screen, clears the form, and shows a
+    // brief confirmation so the worker can rapidly enter a backlog. Only
+    // applies on create — edits always pop on save.
+    if (addAnother && _editTask == null) {
+      _resetForm();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task added — start another.'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      context.pop();
+    }
+  }
+
+  void _resetForm() {
+    _titleCtrl.clear();
+    _descCtrl.clear();
+    setState(() {
+      _priority = TaskPriority.medium;
+      _category = TaskCategory.general;
+      _status = TaskStatus.pending;
+      _dueDate = null;
+      _isRecurring = false;
+      _recurrenceType = RecurrenceType.weekly;
+    });
+    _formKey.currentState?.reset();
   }
 
   Future<void> _pickDueDate() async {
@@ -322,6 +350,14 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
                 icon: isEditing ? Icons.save_outlined : Icons.add_task,
                 onPressed: _submit,
               ),
+              if (!isEditing) ...[
+                const SizedBox(height: AppDimensions.sm),
+                TextButton.icon(
+                  onPressed: () => _submit(addAnother: true),
+                  icon: const Icon(Icons.playlist_add),
+                  label: const Text('Save & add another'),
+                ),
+              ],
               const SizedBox(height: AppDimensions.md),
             ],
           ),

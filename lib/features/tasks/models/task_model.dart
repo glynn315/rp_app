@@ -42,6 +42,47 @@ extension RecurrenceTypeX on RecurrenceType {
       };
 }
 
+/// Image attachment captured for a daily update. Stored as a data URL so the
+/// in-memory state can survive route changes without depending on a file
+/// path that may be sandboxed.
+class TaskAttachment {
+  final String id;
+  final String name;
+  final String mimeType;
+  final String dataUrl;
+
+  const TaskAttachment({
+    required this.id,
+    required this.name,
+    required this.mimeType,
+    required this.dataUrl,
+  });
+
+  bool get isImage => mimeType.startsWith('image/');
+}
+
+/// One progress entry against a task. `date` is the report date (yyyy-MM-dd
+/// for grouping), `createdAt` is when it was actually logged.
+class TaskDailyUpdate {
+  final String id;
+  final String date; // yyyy-MM-dd — groups display by day
+  final String note;
+  final int? progress; // 0–100; null when not provided
+  final bool markedDone;
+  final List<TaskAttachment> attachments;
+  final DateTime createdAt;
+
+  const TaskDailyUpdate({
+    required this.id,
+    required this.date,
+    required this.note,
+    this.progress,
+    this.markedDone = false,
+    this.attachments = const [],
+    required this.createdAt,
+  });
+}
+
 class Task {
   final String id;
   final String title;
@@ -54,6 +95,7 @@ class Task {
   final RecurrenceType? recurrenceType;
   final DateTime createdAt;
   final String? assignedTo;
+  final List<TaskDailyUpdate> dailyUpdates;
 
   const Task({
     required this.id,
@@ -67,6 +109,7 @@ class Task {
     this.recurrenceType,
     required this.createdAt,
     this.assignedTo,
+    this.dailyUpdates = const [],
   });
 
   Task copyWith({
@@ -79,6 +122,7 @@ class Task {
     bool? isRecurring,
     RecurrenceType? recurrenceType,
     String? assignedTo,
+    List<TaskDailyUpdate>? dailyUpdates,
   }) {
     return Task(
       id: id,
@@ -92,6 +136,7 @@ class Task {
       recurrenceType: recurrenceType ?? this.recurrenceType,
       createdAt: createdAt,
       assignedTo: assignedTo ?? this.assignedTo,
+      dailyUpdates: dailyUpdates ?? this.dailyUpdates,
     );
   }
 }

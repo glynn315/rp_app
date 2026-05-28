@@ -127,6 +127,39 @@ class ProjectManagementApi {
     return _mapList(res, MandaysMatchingEmployeeSummary.fromJson);
   }
 
+  /// POST `/v1/projects/mandays-matching/auto-run` — fires the LMC resolver.
+  /// When `dryRun` is true, no matching docs are written; only the decision
+  /// audit table is populated so the operator can preview APPLY counts.
+  /// `minutesPerManday` is optional; when null the backend uses its default
+  /// (480 = 8h).
+  Future<MandaysAutoRunResult> mandaysAutoRun({
+    required String dateFrom, // yyyy-MM-dd
+    required String dateTo,   // yyyy-MM-dd
+    bool dryRun = true,
+    int? minutesPerManday,
+    String? token,
+  }) async {
+    final body = <String, dynamic>{
+      'date_from': dateFrom,
+      'date_to': dateTo,
+      'dry_run': dryRun,
+      'minutes_per_manday': ?minutesPerManday,
+    };
+    final res = await _api.post(
+      '/v1/projects/mandays-matching/auto-run',
+      body,
+      token: token,
+    );
+    // Envelope: `{ success, message, data: { run_id, dry_run, count, summary } }`.
+    // The backend has historically returned the auto-run payload either inside
+    // `data` or at the top level — handle both shapes defensively.
+    final inner = res['data'];
+    final data = inner is Map
+        ? Map<String, dynamic>.from(inner)
+        : Map<String, dynamic>.from(res);
+    return MandaysAutoRunResult.fromJson(data);
+  }
+
   // ===== Maker/checker workflow =====
 
   /// Pending list — one row per (employee, schedule date) with aggregate

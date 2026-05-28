@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/project_management_models.dart';
 import '../providers/project_management_provider.dart';
@@ -23,7 +24,10 @@ class MandaysEmployeeDetailScreen extends ConsumerWidget {
     final date = row.dateSchedule;
     if (date == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(row.fullName)),
+        appBar: AppBar(
+          leading: const AppBackButton(),
+          title: Text(row.fullName),
+        ),
         body: const Center(
           child: Text('Schedule date missing — cannot load detail.'),
         ),
@@ -48,6 +52,7 @@ class MandaysEmployeeDetailScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(row.fullName),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(28),

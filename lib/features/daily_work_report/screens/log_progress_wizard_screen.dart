@@ -366,6 +366,22 @@ class _AttendanceStepViewState
         );
   }
 
+  Future<void> _pickDate() async {
+    final cur =
+        DateTime.tryParse(widget.state.effectiveReportDate) ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: cur,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      final ymd =
+          '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      ref.read(logProgressWizardProvider.notifier).setReportDate(ymd);
+    }
+  }
+
   Future<void> _pickTime(TextEditingController ctl) async {
     TimeOfDay initial;
     final parts = ctl.text.split(':');
@@ -425,6 +441,12 @@ class _AttendanceStepViewState
               ),
             ),
           const SizedBox(height: 12),
+          _DateBox(
+            label: 'Date',
+            value: widget.state.effectiveReportDate,
+            onTap: _pickDate,
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -458,6 +480,36 @@ class _AttendanceStepViewState
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DateBox extends StatelessWidget {
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  const _DateBox({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: const Icon(Icons.calendar_today, size: 18),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        ),
+        child: Text(value, style: const TextStyle(fontSize: 14)),
       ),
     );
   }

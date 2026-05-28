@@ -19,6 +19,8 @@ class LogProgressWizardState {
   final String tagType;
   final String? tagId;
   final String? tagLabel;
+  /// Report date (YYYY-MM-DD). Empty = today; lets the worker backfill a past day.
+  final String reportDate;
   final String timeIn;
   final String timeOut;
   final String tasks;
@@ -55,6 +57,7 @@ class LogProgressWizardState {
     this.tagType = TagType.project,
     this.tagId,
     this.tagLabel,
+    this.reportDate = '',
     this.timeIn = '',
     this.timeOut = '',
     this.tasks = '',
@@ -74,6 +77,7 @@ class LogProgressWizardState {
     String? tagType,
     String? tagId,
     String? tagLabel,
+    String? reportDate,
     String? timeIn,
     String? timeOut,
     String? tasks,
@@ -97,6 +101,7 @@ class LogProgressWizardState {
       tagType: tagType ?? this.tagType,
       tagId: tagId ?? this.tagId,
       tagLabel: tagLabel ?? this.tagLabel,
+      reportDate: reportDate ?? this.reportDate,
       timeIn: timeIn ?? this.timeIn,
       timeOut: timeOut ?? this.timeOut,
       tasks: tasks ?? this.tasks,
@@ -122,6 +127,10 @@ class LogProgressWizardState {
       timeIn.isNotEmpty &&
       timeOut.isNotEmpty &&
       tasks.trim().isNotEmpty;
+
+  /// Resolved report date — falls back to today when the worker hasn't
+  /// changed it.
+  String get effectiveReportDate => reportDate.isEmpty ? todayYmd() : reportDate;
 
   bool get boqReady => selectedBoq != null;
   bool get photoReady => photoPaths.isNotEmpty;
@@ -158,6 +167,10 @@ class LogProgressWizardNotifier
   }
 
   // ─── Step 1 — attendance (time + tasks only) ────────────────────
+
+  void setReportDate(String ymd) {
+    state = state.copyWith(reportDate: ymd, clearError: true);
+  }
 
   void setAttendance({
     required String timeIn,
@@ -218,7 +231,7 @@ class LogProgressWizardNotifier
       final res = await _api.uploadPhoto(
         file: file,
         employeeId: empId,
-        reportDate: todayYmd(),
+        reportDate: state.effectiveReportDate,
         token: _token,
       );
       state = state.copyWith(
@@ -372,7 +385,7 @@ class LogProgressWizardNotifier
     try {
       await _api.saveProgressEntry(
         employeeId: empId,
-        reportDate: todayYmd(),
+        reportDate: state.effectiveReportDate,
         timeIn: state.timeIn,
         timeOut: state.timeOut,
         tasks: state.tasks.trim(),

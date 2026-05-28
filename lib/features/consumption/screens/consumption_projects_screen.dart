@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/consumption_models.dart';
 import '../providers/consumption_provider.dart';
@@ -48,19 +49,33 @@ class _ConsumptionProjectsScreenState
   Widget build(BuildContext context) {
     final async = ref.watch(consumptionProjectsProvider);
     final items = async.value ?? const <ConsumptionProject>[];
+    final categories =
+        ref.watch(consumptionCategoriesProvider).value ?? const [];
+    final activeCategory = ref.watch(consumptionCategoryFilterProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppDrawer(),
       appBar: AppBar(
-        leading: Builder(
-          builder: (innerContext) => IconButton(
-            icon: const Icon(Icons.menu),
-            tooltip: 'Open menu',
-            onPressed: () => Scaffold.of(innerContext).openDrawer(),
-          ),
-        ),
+        leading: const AppBackButton(),
         title: const Text('Consumption'),
+        actions: [
+          // Drawer remains reachable via swipe-from-edge; we surface it as
+          // an explicit action too so users on platforms without that
+          // gesture can still switch sections from this top-level page.
+          Builder(
+            builder: (innerContext) => IconButton(
+              tooltip: 'Open menu',
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(innerContext).openDrawer(),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Browse sessions',
+            icon: const Icon(Icons.history),
+            onPressed: () => context.push('/consumption/sessions'),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -95,6 +110,14 @@ class _ConsumptionProjectsScreenState
               ),
             ),
           ),
+          if (categories.isNotEmpty)
+            _CategoryChipsRow(
+              categories: categories,
+              active: activeCategory,
+              onChanged: (name) => ref
+                  .read(consumptionCategoryFilterProvider.notifier)
+                  .state = name,
+            ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -287,6 +310,90 @@ class _ProjectCard extends StatelessWidget {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Horizontal scrollable chip row for category filtering. First chip is
+/// always "All" (null filter); the rest map to backend category names.
+class _CategoryChipsRow extends StatelessWidget {
+  final List<ConsumptionCategory> categories;
+  final String? active;
+  final ValueChanged<String?> onChanged;
+
+  const _CategoryChipsRow({
+    required this.categories,
+    required this.active,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(
+          AppDimensions.md,
+          0,
+          AppDimensions.md,
+          AppDimensions.sm,
+        ),
+        itemCount: categories.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (context, i) {
+          if (i == 0) {
+            return _Chip(
+              label: 'All',
+              selected: active == null,
+              onTap: () => onChanged(null),
+            );
+          }
+          final c = categories[i - 1];
+          return _Chip(
+            label: c.name,
+            selected: active == c.name,
+            onTap: () => onChanged(c.name),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _Chip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.neutral200,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColors.textOnPrimary : AppColors.textSecondary,
+          ),
         ),
       ),
     );

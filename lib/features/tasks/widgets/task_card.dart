@@ -8,12 +8,14 @@ class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback? onStatusChanged;
   final VoidCallback? onDelete;
+  final VoidCallback? onTap;
 
   const TaskCard({
     super.key,
     required this.task,
     this.onStatusChanged,
     this.onDelete,
+    this.onTap,
   });
 
   @override
@@ -32,7 +34,12 @@ class TaskCard extends StatelessWidget {
           ),
         ],
       ),
-      child: IntrinsicHeight(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -170,6 +177,8 @@ class TaskCard extends StatelessWidget {
           ),
         ],
       ),
+      ),
+        ),
       ),
     );
   }

@@ -10,12 +10,26 @@ final consumptionApiProvider = Provider<ConsumptionApi>(
 /// Free-text search applied to the projects list.
 final consumptionSearchProvider = StateProvider<String>((ref) => '');
 
-/// Projects list — refetches whenever the search query changes.
+/// Selected category-name filter for the projects list. `null` means "All".
+/// Matches the web mobile filter chips — we pass the category name (not id)
+/// through to `/consumption/projects?category=…`.
+final consumptionCategoryFilterProvider = StateProvider<String?>((ref) => null);
+
+/// `/consumption/categories` — cached for the session so the chip row doesn't
+/// flicker on every projects-screen rebuild.
+final consumptionCategoriesProvider =
+    FutureProvider<List<ConsumptionCategory>>((ref) async {
+  final api = ref.watch(consumptionApiProvider);
+  return api.listCategories();
+});
+
+/// Projects list — refetches whenever the search query or category changes.
 final consumptionProjectsProvider =
     FutureProvider.autoDispose<List<ConsumptionProject>>((ref) async {
   final api = ref.watch(consumptionApiProvider);
   final search = ref.watch(consumptionSearchProvider);
-  return api.listProjects(search: search);
+  final category = ref.watch(consumptionCategoryFilterProvider);
+  return api.listProjects(search: search, category: category);
 });
 
 /// BOM bundle for a given project — used as the starting point for a new
@@ -49,4 +63,13 @@ final consumptionHistoryByScopeProvider = FutureProvider.autoDispose
     .family<ConsumptionHistory, int>((ref, scopeId) async {
   final api = ref.watch(consumptionApiProvider);
   return api.historyByScope(scopeId);
+});
+
+/// One-shot fetch of the ERP-verify reconciliation for a posted session.
+/// Auto-dispose so the comparison is refetched fresh each time the user opens
+/// the screen (the underlying ERP state can drift between visits).
+final consumptionErpVerifyProvider = FutureProvider.autoDispose
+    .family<ErpVerifyResult, int>((ref, sessionId) async {
+  final api = ref.watch(consumptionApiProvider);
+  return api.verifyAgainstErp(sessionId);
 });

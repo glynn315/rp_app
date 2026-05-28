@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_drawer.dart';
 
 /// Shared scaffold + AsyncValue states for Project Management list screens.
@@ -41,18 +42,20 @@ class ProjectListShell extends StatelessWidget {
       backgroundColor: AppColors.background,
       drawer: const AppDrawer(),
       appBar: AppBar(
-        // Builder gives the IconButton a context that's a *descendant* of this
-        // Scaffold, so Scaffold.of() can find the local drawer. Without it,
-        // the build-method context is above the Scaffold and Scaffold.of()
-        // returns null.
-        leading: Builder(
-          builder: (innerContext) => IconButton(
-            icon: const Icon(Icons.menu),
-            tooltip: 'Open menu',
-            onPressed: () => Scaffold.of(innerContext).openDrawer(),
-          ),
-        ),
+        // Back arrow as the leading widget so every list screen has a
+        // visible "back" affordance. The drawer is still reachable via
+        // an actions IconButton and the platform's swipe-from-edge gesture.
+        leading: const AppBackButton(),
         title: Text(title),
+        actions: [
+          Builder(
+            builder: (innerContext) => IconButton(
+              tooltip: 'Open menu',
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(innerContext).openDrawer(),
+            ),
+          ),
+        ],
         bottom: subtitle == null
             ? null
             : PreferredSize(
